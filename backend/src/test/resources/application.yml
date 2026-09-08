@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cbs_test
+    username: cbs_app
+    password: cbs_demo_password
+  flyway:
+    enabled: true
+
+app:
+  jwt:
+    secret: "cbs-general-test-secret-key-0123456789abcdef0123456789abcdef"
+    expiration-ms: 86400000
