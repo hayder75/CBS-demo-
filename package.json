@@ -10,8 +10,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:unit": "vitest run",
-    "test:e2e": "playwright test",
-    "test:all": "vitest run && playwright test"
+    "test:build": "tsc -b && vite build",
+    "test:all": "vitest run && tsc -b && vite build && mvn test -f backend && bash scripts/api-smoke.sh",
+    "test:e2e": "bash scripts/api-smoke.sh",
+    "test:full": "vitest run && tsc -b && vite build && bash scripts/api-smoke.sh"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.4",

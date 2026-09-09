@@ -37,4 +37,22 @@ public class SavingsTransaction {
     private String teller;
 
     private String channel;
+
+    @Column(name = "pay_status")
+    private String payStatus = "Authorized";
+
+    @Column(name = "audited_status")
+    private String auditedStatus = "Unaudited";
+
+    @Column(name = "audited_by")
+    private String auditedBy;
+
+    @Column(name = "audited_at")
+    private java.time.Instant auditedAt;
+
+    @Column(name = "audit_note")
+    private String auditNote;
+
+    @Column(name = "payment_mode")
+    private String paymentMode;
 }

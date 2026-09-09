@@ -17,6 +17,25 @@ import type {
   Notification,
   Kpi,
   User,
+  Branch,
+  Currency,
+  PaymentMode,
+  Vault,
+  SavingsAccount,
+  ShareCategory,
+  ShareAccount,
+  ShareRequest,
+  Charge,
+  FundReservation,
+  TransactionLimit,
+  LoanCategory,
+  LoanGroup,
+  CreditCommittee,
+  BatchJob,
+  FixedAsset,
+  GlClass,
+  Payment,
+  AuditLogEntry,
 } from '../types';
 
 export const users: User[] = [
@@ -354,4 +373,120 @@ export const loanProductMix = [
   { name: 'Home Improvement', value: 19 },
   { name: 'Vehicle', value: 14 },
   { name: 'Emergency', value: 8 },
+];
+// ---- Franc-parity mock data ----
+export const branches: Branch[] = [
+  { id: '1', code: 'HO', name: 'Head Office', address: 'Bole, Addis Ababa', phone: '+251 11 551 2233', status: 'Verified', createdAt: '2025-01-01' },
+  { id: '2', code: 'BL', name: 'Bole Branch', address: 'Bole Medhanialem', phone: '+251 11 661 2244', status: 'Verified', createdAt: '2025-01-01' },
+  { id: '3', code: 'PK', name: 'Piassa Branch', address: 'Piassa, Addis Ababa', phone: '+251 11 111 8877', status: 'Verified', createdAt: '2025-01-10' },
+  { id: '4', code: 'GM', name: 'Grand Mexico Branch', address: 'Mexico Square', phone: '+251 11 552 9900', status: 'Pending', createdAt: '2026-09-01' },
+];
+
+export const currencies: Currency[] = [
+  { id: '1', code: 'ETB', name: 'Ethiopian Birr', notesLabel: 'Birr', centsLabel: 'Cents', exchangeRate: 1, status: 'Verified' },
+  { id: '2', code: 'USD', name: 'US Dollar', notesLabel: 'Dollar', centsLabel: 'Cents', exchangeRate: 118.5, status: 'Verified' },
+  { id: '3', code: 'EUR', name: 'Euro', notesLabel: 'Euro', centsLabel: 'Cents', exchangeRate: 128.75, status: 'Pending' },
+];
+
+export const paymentModes: PaymentMode[] = [
+  { id: '1', code: 'CASH', name: 'Cash', paymentType: 'CASH', description: 'Physical cash via till', status: 'Verified' },
+  { id: '2', code: 'TRANSFER', name: 'Bank Transfer', paymentType: 'NON_CASH', description: 'Interbank transfer', status: 'Verified' },
+  { id: '3', code: 'MOBILE', name: 'Mobile Money', paymentType: 'NON_CASH', description: 'Mobile wallet', status: 'Verified' },
+  { id: '4', code: 'CHEQUE', name: 'Cheque', paymentType: 'NON_CASH', description: 'Bank cheque', status: 'Verified' },
+];
+
+export const vaults: Vault[] = [
+  { id: '1', code: 'VA-HO-01', name: 'Head Office Main Vault', location: 'Head Office', type: 'HEAD', status: 'Verified' },
+  { id: '2', code: 'VA-BL-01', name: 'Bole Branch Vault', location: 'Bole Branch', type: 'BRANCH', status: 'Verified' },
+  { id: '3', code: 'VA-BK-01', name: 'CBE Safe Deposit', location: 'CBE Head Office', type: 'BANK', status: 'Verified' },
+];
+
+export const savingsAccounts: SavingsAccount[] = [
+  { id: '1', accountNo: 'SA-MEM-01001-1', memberId: '1', productId: '1', accountType: 'Saving', openedDate: '2016-01-15', balance: 84000, status: 'Active', currencyId: '1', branchId: '1' },
+  { id: '2', accountNo: 'SA-MEM-01001-2', memberId: '1', productId: '2', accountType: 'Saving', openedDate: '2016-01-15', balance: 112000, status: 'Active', currencyId: '1', branchId: '1' },
+  { id: '3', accountNo: 'SA-MEM-01002-1', memberId: '2', productId: '1', accountType: 'Saving', openedDate: '2016-02-15', balance: 86000, status: 'Active', currencyId: '1', branchId: '2' },
+  { id: '4', accountNo: 'SA-MEM-01002-2', memberId: '2', productId: '2', accountType: 'Saving', openedDate: '2016-02-15', balance: 96000, status: 'Active', currencyId: '1', branchId: '2' },
+  { id: '5', accountNo: 'SA-MEM-01003-1', memberId: '3', productId: '1', accountType: 'Saving', openedDate: '2017-03-15', balance: 82000, status: 'Active', currencyId: '1', branchId: '2' },
+  { id: '9', accountNo: 'SA-MEM-09990-2', memberId: '9', productId: '2', accountType: 'Saving', openedDate: '2026-09-01', balance: 0, status: 'Pending', currencyId: '1', branchId: '4' },
+];
+
+export const shareCategories: ShareCategory[] = [
+  { id: '1', code: 'SH-A', name: 'Class A Ordinary Shares', totalShares: 50000, nominalPrice: 100, sharesForSale: 48000, minPerCustomer: 20, maxPerCustomer: 2000, paymentAgreementMonths: 12, status: 'Verified' },
+  { id: '2', code: 'SH-B', name: 'Class B Institutional', totalShares: 10000, nominalPrice: 1000, sharesForSale: 9000, minPerCustomer: 10, maxPerCustomer: 1000, paymentAgreementMonths: 24, status: 'Verified' },
+  { id: '3', code: 'SH-C', name: 'Class C Preference', totalShares: 20000, nominalPrice: 150, sharesForSale: 15000, minPerCustomer: 10, maxPerCustomer: 1500, paymentAgreementMonths: 18, status: 'Pending' },
+];
+
+export const shareAccounts: ShareAccount[] = [
+  { id: '1', memberId: '1', categoryId: '1', savingAccountId: '1', shareCount: 300, description: 'Initial purchase', status: 'Verified' },
+  { id: '2', memberId: '2', categoryId: '1', savingAccountId: '3', shareCount: 288, description: 'Initial purchase', status: 'Verified' },
+  { id: '7', memberId: '7', categoryId: '1', savingAccountId: null as unknown as string, shareCount: 150, description: 'Pending', status: 'Pending' },
+];
+
+export const shareRequests: ShareRequest[] = [
+  { id: '1', shareAccountId: '1', requestType: 'UPGRADE', shareCount: 50, status: 'Pending' },
+  { id: '2', shareAccountId: '2', requestType: 'DOWNGRADE', shareCount: 20, status: 'Pending' },
+];
+
+export const charges: Charge[] = [
+  { id: '1', code: 'CHG-SVC', name: 'Monthly Service Charge', serviceType: 'SERVICE', glAccountId: '9', calcType: 'Fixed', amount: 25, applyPenalty: false, status: 'Verified' },
+  { id: '2', code: 'CHG-WDL', name: 'Withdrawal Fee', serviceType: 'WITHDRAWAL', glAccountId: '9', calcType: 'Flat', amount: 5, applyPenalty: false, status: 'Verified' },
+  { id: '5', code: 'CHG-PEN', name: 'Late Payment Penalty', serviceType: 'PENALTY', glAccountId: '9', calcType: 'Percentile', amount: 2, applyPenalty: true, status: 'Verified' },
+];
+
+export const reservations: FundReservation[] = [
+  { id: '1', accountId: '3', memberId: '2', amount: 15000, reason: 'Loan collateral hold', reservedAt: '2026-09-06', reservedBy: 'Biruk Kebede', status: 'Active' },
+  { id: '2', accountId: '2', memberId: '1', amount: 5000, reason: 'Membership fee deduction', reservedAt: '2026-09-03', reservedBy: 'Kaleab Desta', status: 'Active' },
+];
+
+export const transactionLimits: TransactionLimit[] = [
+  { id: '1', roleCode: 'TELLER', txnType: 'WITHDRAWAL', maxAmount: 50000 },
+  { id: '2', roleCode: 'TELLER', txnType: 'TRANSFER', maxAmount: 100000 },
+  { id: '5', roleCode: 'MANAGER', txnType: 'WITHDRAWAL', maxAmount: 500000 },
+];
+
+export const loanCategories: LoanCategory[] = [
+  { id: '1', name: 'Personal', description: 'Personal consumption loans', status: 'Verified' },
+  { id: '2', name: 'Student', description: 'Education financing', status: 'Verified' },
+  { id: '3', name: 'Home', description: 'Home improvement', status: 'Verified' },
+];
+
+export const loanGroups: LoanGroup[] = [
+  { id: '1', code: 'GRP-01', name: 'Teachers Cooperative 2026', maxMembers: 30, status: 'Verified' },
+  { id: '2', code: 'GRP-02', name: 'Savings Circle', maxMembers: 25, status: 'Verified' },
+];
+
+export const committees: CreditCommittee[] = [
+  { id: '1', name: 'Main Credit Committee', minAmount: 100000, maxAmount: 1000000, status: 'Verified' },
+  { id: '2', name: 'Small Loans Committee', minAmount: 0, maxAmount: 100000, status: 'Verified' },
+];
+
+export const batchJobs: BatchJob[] = [
+  { id: '1', jobType: 'INTEREST_CALCULATION', name: 'Saving Interest Calculation', status: 'Done', lastRunAt: '2026-09-08T00:00:00' },
+  { id: '4', jobType: 'DEPRECIATION', name: 'Asset Depreciation Calculation', status: 'Idle', lastRunAt: null as unknown as string },
+  { id: '5', jobType: 'COLLATERAL_INSURANCE', name: 'Collateral Insurance Status Check', status: 'Idle', lastRunAt: null as unknown as string },
+];
+
+export const assets: FixedAsset[] = [
+  { id: '1', code: 'AST-001', name: 'Head Office IT Server', value: 850000, depreciationRate: 20, dprLink: 'G/L 3311', glLink: '1600', branch: 'Head Office', status: 'Active' },
+  { id: '2', code: 'AST-002', name: 'Bole Branch Office Building', value: 6500000, depreciationRate: 5, dprLink: 'G/L 3312', glLink: '1600', branch: 'Bole Branch', status: 'Active' },
+  { id: '4', code: 'AST-004', name: 'Office Furniture & Fittings', value: 420000, depreciationRate: 20, dprLink: 'G/L 3314', glLink: '1600', branch: 'Piassa Branch', status: 'Pending' },
+];
+
+export const glClasses: GlClass[] = [
+  { id: '1', name: 'Assets', status: 'Verified' },
+  { id: '2', name: 'Liabilities', status: 'Verified' },
+  { id: '3', name: 'Equity / Capital', status: 'Verified' },
+  { id: '4', name: 'Income', status: 'Verified' },
+  { id: '5', name: 'Expenses', status: 'Verified' },
+];
+
+export const payments: Payment[] = [
+  { id: '1', paymentNo: 'PMT-0000001', kind: 'DEPOSIT', memberId: '1', accountId: '1', fromRef: 'CASH', toRef: 'SA-MEM-01001-1', amount: 5000, paymentModeId: '1', description: 'Cash deposit', status: 'Authorized', createdBy: 'Kaleab Desta', createdAt: '2026-09-07T09:00:00', authorizedBy: 'Tigist Fikre', authorizedAt: '2026-09-07T09:05:00', reversalOf: null as unknown as string },
+  { id: '2', paymentNo: 'PMT-0000002', kind: 'WITHDRAWAL', memberId: '2', accountId: '3', fromRef: 'SA-MEM-01002-1', toRef: 'CASH', amount: 3000, paymentModeId: '1', description: 'Cash withdrawal', status: 'Authorized', createdBy: 'Rahel Abebe', createdAt: '2026-09-07T10:00:00', authorizedBy: 'Tigist Fikre', authorizedAt: '2026-09-07T10:06:00', reversalOf: null as unknown as string },
+  { id: '3', paymentNo: 'PMT-0000003', kind: 'TRANSFER', memberId: '3', accountId: '5', fromRef: 'SA-MEM-01003-1', toRef: 'SA-MEM-01003-2', amount: 20000, paymentModeId: '3', description: 'Saving to saving transfer', status: 'Pending', createdBy: 'Kaleab Desta', createdAt: '2026-09-09T11:00:00', authorizedBy: null as unknown as string, authorizedAt: null as unknown as string, reversalOf: null as unknown as string },
+];
+
+export const auditLogs: AuditLogEntry[] = [
+  { id: '1', username: 'admin', action: 'LOGIN', entity: 'auth', entityId: '1', detail: 'User login', occurredAt: '2026-09-08T08:12:00' },
+  { id: '2', username: 'teller', action: 'PAYMENT_CREATED', entity: 'payment', entityId: '3', detail: 'PMT-0000003 - transfer', occurredAt: '2026-09-09T11:01:00' },
 ];

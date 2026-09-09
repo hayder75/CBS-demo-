@@ -38,4 +38,19 @@ public class LoanProduct {
 
     @Column(name = "processing_fee_pct")
     private BigDecimal processingFeePct = BigDecimal.ZERO;
+
+    @Column(name = "product_status")
+    private String status = "Verified";
+
+    @Column(name = "category_id")
+    private Long categoryId;
+
+    @Column(name = "pre_payment_penalty")
+    private BigDecimal prePaymentPenalty = BigDecimal.ZERO;
+
+    @Column(name = "late_payment_penalty")
+    private BigDecimal latePaymentPenalty = BigDecimal.ZERO;
+
+    @Column(name = "min_installments")
+    private Integer minInstallments = 1;
 }

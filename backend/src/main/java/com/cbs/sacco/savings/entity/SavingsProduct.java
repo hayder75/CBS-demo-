@@ -35,4 +35,7 @@ public class SavingsProduct {
 
     @Column(name = "notice_period_days")
     private Integer noticePeriodDays;
+
+    @Column(name = "product_status")
+    private String status = "Verified";
 }

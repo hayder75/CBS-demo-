@@ -16,6 +16,12 @@ import {
   TeamOutlined,
   TransactionOutlined,
   UserSwitchOutlined,
+  AuditOutlined,
+  CloudUploadOutlined,
+  CrownOutlined,
+  EuroCircleOutlined,
+  SettingOutlined,
+  SolutionOutlined,
 } from '@ant-design/icons';
 import { Avatar, Dropdown, Space, Tag, Typography, message } from 'antd';
 import type { MenuProps } from 'antd';
@@ -42,6 +48,14 @@ const menu: MenuItem[] = [
   { path: '/cashops', name: 'Cash & Branch Ops', icon: <BankOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'ACCOUNTANT', 'AUDITOR'] },
   { path: '/approvals', name: 'Approvals', icon: <CheckSquareOutlined />, roles: ['ADMIN', 'MANAGER'] },
   { path: '/reports', name: 'Reports', icon: <BarChartOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'] },
+  { path: '/products', name: 'Products', icon: <EuroCircleOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'] },
+  { path: '/registration', name: 'Registration', icon: <SolutionOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'ACCOUNTANT'] },
+  { path: '/payments', name: 'Payments', icon: <TransactionOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'ACCOUNTANT'] },
+  { path: '/auditing', name: 'Auditing', icon: <AuditOutlined />, roles: ['ADMIN', 'AUDITOR'] },
+  { path: '/finance', name: 'Finance', icon: <CalculatorOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'] },
+  { path: '/loan-admin', name: 'Loan Ops Admin', icon: <CrownOutlined />, roles: ['ADMIN', 'MANAGER', 'CREDIT_OFFICER'] },
+  { path: '/data-migration', name: 'Data Migration', icon: <CloudUploadOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'] },
+  { path: '/admin', name: 'Admin', icon: <SettingOutlined />, roles: ['ADMIN', 'MANAGER'] },
 ];
 
 const roleTagColor: Record<Role, string> = {

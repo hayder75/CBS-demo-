@@ -16,6 +16,8 @@ import {
   Typography,
   Form,
   InputNumber,
+  message,
+  Input,
 } from 'antd';
 import {
   CheckCircleOutlined,
@@ -29,7 +31,7 @@ import {
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { api } from '../api/client';
-import type { Loan, LoanProduct } from '../types';
+import type { Loan, LoanProduct, LoanScheduleRow } from '../types';
 import { fmtETB } from '../utils/format';
 
 const statusColor: Record<Loan['status'], string> = {
@@ -58,11 +60,45 @@ export default function Loans() {
   const [selected, setSelected] = useState<Loan | null>(null);
   const [applyOpen, setApplyOpen] = useState(false);
   const [form] = Form.useForm();
+  const [schedule, setSchedule] = useState<LoanScheduleRow[] | null>(null);
+  const [decisionOpen, setDecisionOpen] = useState(false);
+  const [note, setNote] = useState('');
 
   useEffect(() => {
     api<Loan[]>('/api/loans').then(setLoans);
     api<LoanProduct[]>('/api/loans/products').then(setProducts);
   }, []);
+
+  const viewSchedule = async (loan: Loan) => {
+    setSelected(loan);
+    try {
+      const rows = await api<LoanScheduleRow[]>('/api/loans/' + loan.id + '/amortization');
+      setSchedule(rows);
+    } catch {
+      setSchedule(null);
+    }
+  };
+
+  const disburse = async () => {
+    if (!selected) return;
+    await api(`/api/loans/${selected.id}/disburse`, { method: 'POST' });
+    message.success('Loan disbursed');
+    const fresh = await api<Loan[]>('/api/loans');
+    setLoans(fresh);
+    const updated = fresh.find((l) => l.id === selected.id);
+    setSelected(updated ?? null);
+  };
+
+  const decide = async (approve: boolean) => {
+    if (!selected) return;
+    await api(`/api/loans/${selected.id}/decide`, { method: 'POST', body: JSON.stringify({ approve, note }) });
+    message.success(approve ? 'Approved' : 'Rejected');
+    setDecisionOpen(false);
+    setNote('');
+    const fresh = await api<Loan[]>('/api/loans');
+    setLoans(fresh);
+    setSelected(fresh.find((l) => l.id === selected.id) ?? null);
+  };
 
   const filtered = useMemo(
     () => loans.filter((l) => !statusFilter || l.status === statusFilter),
@@ -274,9 +310,65 @@ export default function Loans() {
                 </Descriptions.Item>
               ))}
             </Descriptions>
+
+            <Space wrap>
+              {selected.status === 'Pending' && (
+                <Button type="primary" icon={<SafetyCertificateOutlined />} onClick={() => setDecisionOpen(true)}>
+                  Committee Decision
+                </Button>
+              )}
+              {selected.status === 'Approved' && (
+                <Button type="primary" icon={<WalletOutlined />} onClick={disburse}>
+                  Disburse
+                </Button>
+              )}
+              <Button icon={<FileSearchOutlined />} disabled={!selected.disbursedAt} onClick={() => viewSchedule(selected)}>
+                View Amortization
+              </Button>
+            </Space>
+
+            {schedule && (
+              <Card size="small" title="Amortization Schedule">
+                <Table
+                  size="small"
+                  rowKey="period"
+                  dataSource={schedule}
+                  pagination={false}
+                  columns={[
+                    { title: 'Period', dataIndex: 'period', width: 70 },
+                    { title: 'Due', dataIndex: 'dueDate', width: 110 },
+                    { title: 'Principal', dataIndex: 'principal', align: 'right', render: (v: number) => fmtETB(v) },
+                    { title: 'Interest', dataIndex: 'interest', align: 'right', render: (v: number) => fmtETB(v) },
+                    { title: 'Total', dataIndex: 'total', align: 'right', render: (v: number) => fmtETB(v) },
+                    { title: 'Paid', dataIndex: 'paid', align: 'right', render: (v: number) => fmtETB(v) },
+                    { title: 'Balance', dataIndex: 'balance', align: 'right', render: (v: number) => fmtETB(v) },
+                  ]}
+                />
+              </Card>
+            )}
           </Space>
         )}
       </Drawer>
+
+      <Modal
+        title="Committee Decision"
+        open={decisionOpen}
+        onCancel={() => setDecisionOpen(false)}
+        footer={
+          <Space>
+            <Button danger onClick={() => decide(false)}>Reject</Button>
+            <Button type="primary" onClick={() => decide(true)}>Approve</Button>
+          </Space>
+        }
+      >
+        <Space direction="vertical" style={{ width: '100%' }} size={12}>
+          <Typography.Text type="secondary">
+            {selected && selected.loanNo} · Committee applies auto-approval thresholds, then votes are
+            aggregated. Decision recorded to the audit trail.
+          </Typography.Text>
+          <Input.TextArea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Decision note / conditions" />
+        </Space>
+      </Modal>
 
       <Modal
         title="New Loan Application"

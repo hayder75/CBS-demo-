@@ -7,6 +7,7 @@ import com.cbs.sacco.loan.entity.Loan;
 import com.cbs.sacco.loan.entity.LoanProduct;
 import com.cbs.sacco.loan.repo.LoanProductRepository;
 import com.cbs.sacco.loan.repo.LoanRepository;
+import com.cbs.sacco.loan.service.LoanService;
 import com.cbs.sacco.member.repo.MemberRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,15 +28,18 @@ public class LoanController {
     private final LoanProductRepository productRepository;
     private final CollateralRepository collateralRepository;
     private final MemberRepository memberRepository;
+    private final LoanService loanService;
 
     public LoanController(LoanRepository loanRepository,
                           LoanProductRepository productRepository,
                           CollateralRepository collateralRepository,
-                          MemberRepository memberRepository) {
+                          MemberRepository memberRepository,
+                          LoanService loanService) {
         this.loanRepository = loanRepository;
         this.productRepository = productRepository;
         this.collateralRepository = collateralRepository;
         this.memberRepository = memberRepository;
+        this.loanService = loanService;
     }
 
     @GetMapping
@@ -77,7 +81,8 @@ public class LoanController {
 
         Loan loan = new Loan();
         loan.setLoanNo("LN-2026-" + String.format("%03d", 100 + loanRepository.count()));
-        loan.setMemberId(10L);
+        Object memberId = body.get("memberId");
+        loan.setMemberId(memberId != null ? asLong(body, "memberId") : 10L);
         loan.setProduct(product);
         loan.setStatus("Pending");
         loan.setAmount(amount);
@@ -89,10 +94,39 @@ public class LoanController {
         loan.setInterestPaid(BigDecimal.ZERO);
         loan.setOverdueDays(0);
         loan.setClassification("Pass");
+        loan.setPurpose(str(body, "purpose"));
+        if (body.get("graceMonths") != null) loan.setGraceMonths(asInteger(body, "graceMonths"));
+        if (body.get("repaymentAccountId") != null) loan.setRepaymentAccountId(asLong(body, "repaymentAccountId"));
+        if (body.get("reserveAccountId") != null) loan.setReserveAccountId(asLong(body, "reserveAccountId"));
+        if (body.get("groupId") != null) loan.setGroupId(asLong(body, "groupId"));
+        if (body.get("committeeId") != null) loan.setCommitteeId(asLong(body, "committeeId"));
         loan.setAiScore(55 + (int) (Math.random() * 40));
         loan.setAiPdPct(new BigDecimal(String.format("%.1f", Math.random() * 15)));
         loan.setAiGuidance("Approve with reduced amount");
         return toDto(loanRepository.save(loan));
+    }
+
+    @PostMapping("/{id}/decide")
+    public LoanDto decide(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        boolean approve = Boolean.TRUE.equals(body.get("approve"));
+        String note = str(body, "note");
+        String decidedBy = str(body, "decidedBy");
+        return toDto(loanService.decide(id, approve, note, decidedBy));
+    }
+
+    @PostMapping("/{id}/disburse")
+    public LoanDto disburse(@PathVariable Long id) {
+        return toDto(loanService.disburse(id));
+    }
+
+    @PostMapping("/{id}/undisburse")
+    public LoanDto unDisburse(@PathVariable Long id) {
+        return toDto(loanService.unDisburse(id));
+    }
+
+    @GetMapping("/{id}/amortization")
+    public List<Map<String, Object>> amortization(@PathVariable Long id) {
+        return loanService.amortization(id);
     }
 
     private static Long asLong(Map<String, Object> body, String key) {
@@ -123,6 +157,11 @@ public class LoanController {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(key + " must be a number");
         }
+    }
+
+    private static String str(Map<String, Object> body, String key) {
+        Object v = body.get(key);
+        return v == null ? null : v.toString();
     }
 
     private LoanDto toDto(Loan loan) {

@@ -11,6 +11,23 @@ import type {
   SavingsProduct,
   SavingsTransaction,
   ShareTransfer,
+  Branch,
+  Currency,
+  PaymentMode,
+  Vault,
+  SavingsAccount,
+  ShareCategory,
+  ShareAccount,
+  Charge,
+  FundReservation,
+  TransactionLimit,
+  LoanCategory,
+  LoanGroup,
+  CreditCommittee,
+  BatchJob,
+  FixedAsset,
+  GlClass,
+  Payment,
 } from '../types';
 import {
   approvals,
@@ -34,9 +51,30 @@ import {
   tills,
   users,
   loanProductMix,
+  branches,
+  currencies,
+  paymentModes,
+  vaults,
+  savingsAccounts,
+  shareCategories,
+  shareAccounts,
+  shareRequests,
+  charges,
+  reservations,
+  transactionLimits,
+  loanCategories,
+  loanGroups,
+  committees,
+  batchJobs,
+  assets,
+  glClasses,
+  payments,
+  auditLogs,
 } from './data';
 
 const json = (body: unknown) => HttpResponse.json(body as Parameters<typeof HttpResponse.json>[0]);
+
+let idCounter = 1000;
 
 export const handlers = [
   http.get('/api/auth/me', async () => {
@@ -352,6 +390,227 @@ export const handlers = [
     loans.unshift(newLoan);
     return json(newLoan);
   }),
+
+  // ---- Franc parity modules ----
+  http.get('/api/branches', () => json(branches)),
+  http.get('/api/branches/:id', ({ params }) => json(branches.find((b) => b.id === params.id) ?? null)),
+  http.post('/api/branches', async ({ request }) => {
+    await delay(500);
+    const body = (await request.json()) as Record<string, unknown>;
+    const b = { id: String(++idCounter), code: String(body.code), name: String(body.name), address: String(body.address ?? ''), phone: String(body.phone ?? ''), status: 'Pending', createdAt: new Date().toISOString() } as Branch;
+    branches.push(b);
+    return json(b);
+  }),
+  http.post('/api/branches/:id/verify', ({ params }) => { const b = branches.find((x) => x.id === params.id); if (b) b.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/currencies', () => json(currencies)),
+  http.post('/api/currencies', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const c = { id: String(++idCounter), code: String(body.code), name: String(body.name), notesLabel: String(body.notesLabel ?? ''), centsLabel: String(body.centsLabel ?? ''), exchangeRate: Number(body.exchangeRate ?? 1), status: 'Pending' } as Currency;
+    currencies.push(c);
+    return json(c);
+  }),
+  http.post('/api/currencies/:id/verify', ({ params }) => { const c = currencies.find((x) => x.id === params.id); if (c) c.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/payment-modes', () => json(paymentModes)),
+  http.post('/api/payment-modes', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const m = { id: String(++idCounter), code: String(body.code), name: String(body.name), paymentType: String(body.paymentType ?? 'CASH'), description: String(body.description ?? ''), status: 'Pending' } as PaymentMode;
+    paymentModes.push(m);
+    return json(m);
+  }),
+  http.post('/api/payment-modes/:id/verify', ({ params }) => { const m = paymentModes.find((x) => x.id === params.id); if (m) m.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/vaults', () => json(vaults)),
+  http.post('/api/vaults', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const v = { id: String(++idCounter), code: String(body.code), name: String(body.name), location: String(body.location ?? ''), type: String(body.type ?? 'BRANCH'), status: 'Pending' } as Vault;
+    vaults.push(v);
+    return json(v);
+  }),
+  http.post('/api/vaults/:id/verify', ({ params }) => { const v = vaults.find((x) => x.id === params.id); if (v) v.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/accounts', () => json(savingsAccounts)),
+  http.get('/api/accounts/member/:memberId', ({ params }) => json(savingsAccounts.filter((a) => a.memberId === params.memberId))),
+  http.post('/api/accounts', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const id = String(++idCounter);
+    const a = { id, accountNo: `SA-NEW-${id}`, memberId: String(body.memberId), productId: String(body.productId), accountType: String(body.accountType ?? 'Saving'), openedDate: new Date().toISOString().slice(0, 10), balance: 0, status: 'Pending', currencyId: String(body.currencyId ?? '1'), branchId: String(body.branchId ?? '1') } as SavingsAccount;
+    savingsAccounts.push(a);
+    return json(a);
+  }),
+  http.post('/api/accounts/:id/verify', ({ params }) => { const a = savingsAccounts.find((x) => x.id === params.id); if (a) a.status = 'Active'; return json({ ok: true }); }),
+  http.post('/api/accounts/:id/freeze', ({ params }) => { const a = savingsAccounts.find((x) => x.id === params.id); if (a) a.status = 'Dormant'; return json({ ok: true }); }),
+  http.post('/api/accounts/:id/close', ({ params }) => { const a = savingsAccounts.find((x) => x.id === params.id); if (a) a.status = 'Closed'; return json({ ok: true }); }),
+
+  http.get('/api/share-categories', () => json(shareCategories)),
+  http.post('/api/share-categories', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const c = { id: String(++idCounter), code: String(body.code), name: String(body.name), totalShares: Number(body.totalShares ?? 0), nominalPrice: Number(body.nominalPrice ?? 0), sharesForSale: Number(body.sharesForSale ?? 0), minPerCustomer: Number(body.minPerCustomer ?? 1), maxPerCustomer: Number(body.maxPerCustomer ?? 0), paymentAgreementMonths: Number(body.paymentAgreementMonths ?? 0), status: 'Pending' } as ShareCategory;
+    shareCategories.push(c);
+    return json(c);
+  }),
+  http.post('/api/share-categories/:id/verify', ({ params }) => { const c = shareCategories.find((x) => x.id === params.id); if (c) c.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/share-accounts', () => json(shareAccounts)),
+  http.post('/api/share-accounts', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const s = { id: String(++idCounter), memberId: String(body.memberId), categoryId: String(body.categoryId), savingAccountId: String(body.savingAccountId ?? ''), shareCount: Number(body.shareCount ?? 0), description: String(body.description ?? ''), status: 'Pending' } as ShareAccount;
+    shareAccounts.push(s);
+    return json(s);
+  }),
+  http.post('/api/share-accounts/:id/verify', ({ params }) => { const s = shareAccounts.find((x) => x.id === params.id); if (s) s.status = 'Verified'; return json({ ok: true }); }),
+  http.get('/api/share-accounts/requests', () => json(shareRequests)),
+  http.post('/api/share-accounts/requests/:reqId/decide', ({ params }) => { const r = shareRequests.find((x) => x.id === params.reqId); if (r) r.status = params.approve === 'true' ? 'Approved' : 'Rejected'; return json({ ok: true }); }),
+
+  http.get('/api/charges', () => json(charges)),
+  http.post('/api/charges', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const c = { id: String(++idCounter), code: String(body.code), name: String(body.name), serviceType: String(body.serviceType ?? ''), glAccountId: String(body.glAccountId ?? ''), calcType: String(body.calcType ?? 'Flat'), amount: Number(body.amount ?? 0), applyPenalty: Boolean(body.applyPenalty), status: 'Pending' } as Charge;
+    charges.push(c);
+    return json(c);
+  }),
+  http.post('/api/charges/:id/verify', ({ params }) => { const c = charges.find((x) => x.id === params.id); if (c) c.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/reservations', () => json(reservations)),
+  http.post('/api/reservations', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const r = { id: String(++idCounter), accountId: String(body.accountId), memberId: String(body.memberId), amount: Number(body.amount), reason: String(body.reason ?? ''), reservedAt: new Date().toISOString(), reservedBy: String(body.reservedBy ?? 'System'), status: 'Active' } as FundReservation;
+    reservations.push(r);
+    return json(r);
+  }),
+  http.post('/api/reservations/:id/release', ({ params }) => { const r = reservations.find((x) => x.id === params.id); if (r) r.status = 'Released'; return json({ ok: true }); }),
+
+  http.get('/api/transaction-limits', () => json(transactionLimits)),
+  http.post('/api/transaction-limits', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const t = { id: String(++idCounter), roleCode: String(body.roleCode), txnType: String(body.txnType), maxAmount: Number(body.maxAmount) } as TransactionLimit;
+    transactionLimits.push(t);
+    return json(t);
+  }),
+
+  http.get('/api/loan-categories', () => json(loanCategories)),
+  http.post('/api/loan-categories', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const c = { id: String(++idCounter), name: String(body.name), description: String(body.description ?? ''), status: 'Pending' } as LoanCategory;
+    loanCategories.push(c);
+    return json(c);
+  }),
+  http.post('/api/loan-categories/:id/verify', ({ params }) => { const c = loanCategories.find((x) => x.id === params.id); if (c) c.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/loan-groups', () => json(loanGroups)),
+  http.post('/api/loan-groups', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const g = { id: String(++idCounter), code: String(body.code), name: String(body.name), maxMembers: Number(body.maxMembers ?? 0), status: 'Pending' } as LoanGroup;
+    loanGroups.push(g);
+    return json(g);
+  }),
+  http.post('/api/loan-groups/:id/verify', ({ params }) => { const g = loanGroups.find((x) => x.id === params.id); if (g) g.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/committees', () => json(committees)),
+  http.post('/api/committees', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const c = { id: String(++idCounter), name: String(body.name), minAmount: Number(body.minAmount ?? 0), maxAmount: Number(body.maxAmount ?? 0), status: 'Pending' } as CreditCommittee;
+    committees.push(c);
+    return json(c);
+  }),
+  http.post('/api/committees/:id/verify', ({ params }) => { const c = committees.find((x) => x.id === params.id); if (c) c.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/batch-jobs', () => json(batchJobs)),
+  http.post('/api/batch-jobs', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const j = { id: String(++idCounter), jobType: String(body.jobType), name: String(body.name), status: 'Idle', lastRunAt: null as unknown as string } as BatchJob;
+    batchJobs.push(j);
+    return json(j);
+  }),
+  http.post('/api/batch-jobs/:id/run', ({ params }) => { const j = batchJobs.find((x) => x.id === params.id); if (j) { j.status = 'Done'; j.lastRunAt = new Date().toISOString(); } return json({ ok: true }); }),
+
+  http.get('/api/assets', () => json(assets)),
+  http.post('/api/assets', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const a = { id: String(++idCounter), code: String(body.code), name: String(body.name), value: Number(body.value ?? 0), depreciationRate: Number(body.depreciationRate ?? 0), dprLink: String(body.dprLink ?? ''), glLink: String(body.glLink ?? ''), branch: String(body.branch ?? ''), status: 'Active' } as FixedAsset;
+    assets.push(a);
+    return json(a);
+  }),
+  http.post('/api/assets/:id/depreciate', ({ params }) => { const a = assets.find((x) => x.id === params.id); if (a) a.value = Math.round(a.value * (1 - a.depreciationRate / 100)); return json({ ok: true }); }),
+
+  http.get('/api/coa/classes', () => json(glClasses)),
+  http.post('/api/coa/classes', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const c = { id: String(++idCounter), name: String(body.name), status: 'Pending' } as GlClass;
+    glClasses.push(c);
+    return json(c);
+  }),
+  http.post('/api/coa/classes/:id/verify', ({ params }) => { const c = glClasses.find((x) => x.id === params.id); if (c) c.status = 'Verified'; return json({ ok: true }); }),
+
+  http.get('/api/payments', () => json(payments)),
+  http.get('/api/payments/status/:status', ({ params }) => json(payments.filter((p) => p.status === params.status))),
+  http.get('/api/payments/kind/:kind', ({ params }) => json(payments.filter((p) => p.kind === params.kind))),
+  http.post('/api/payments', async ({ request }) => {
+    await delay(500);
+    const body = (await request.json()) as Record<string, unknown>;
+    const p = {
+      id: String(++idCounter),
+      paymentNo: `PMT-${String(idCounter).padStart(7, '0')}`,
+      kind: String(body.kind),
+      memberId: String(body.memberId ?? ''),
+      accountId: String(body.accountId ?? ''),
+      fromRef: String(body.fromRef ?? ''),
+      toRef: String(body.toRef ?? ''),
+      amount: Number(body.amount ?? 0),
+      paymentModeId: String(body.paymentModeId ?? ''),
+      description: String(body.description ?? ''),
+      status: body.kind === 'DEPOSIT' ? 'Authorized' : 'Pending',
+      createdBy: 'Kaleab Desta',
+      createdAt: new Date().toISOString(),
+      authorizedBy: null,
+      authorizedAt: null,
+      reversalOf: null,
+    } as unknown as Payment;
+    payments.unshift(p);
+    return json(p);
+  }),
+  http.post('/api/payments/:id/authorize', ({ params }) => { const p = payments.find((x) => x.id === params.id); if (p) { p.status = 'Authorized'; p.authorizedBy = 'Tigist Fikre'; p.authorizedAt = new Date().toISOString(); } return json(p ?? {}); }),
+  http.post('/api/payments/:id/reject', ({ params }) => { const p = payments.find((x) => x.id === params.id); if (p) p.status = 'Rejected'; return json(p ?? {}); }),
+  http.post('/api/payments/:id/reverse', ({ params }) => { const p = payments.find((x) => x.id === params.id); if (p) p.status = 'Reversed'; return json(p ?? {}); }),
+  http.post('/api/payments/mass-transfer', async ({ request }) => {
+    const body = (await request.json()) as { legs?: unknown[] };
+    return json({ posted: body.legs?.length ?? 0 });
+  }),
+
+  http.get('/api/audit/transactions', ({ request }) => {
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status') ?? 'Unaudited';
+    const rows = savingsTransactions.map((t) => ({ ...t, auditedStatus: t.auditedStatus ?? 'Unaudited' as const }));
+    return json(status === 'all' ? rows : rows.filter((t) => t.auditedStatus === status));
+  }),
+  http.post('/api/audit/transactions/:id/exact', ({ params }) => { const t = savingsTransactions.find((x) => x.id === params.id); if (t) t.auditedStatus = 'Audited'; return json(t ?? {}); }),
+  http.post('/api/audit/transactions/:id/discrepant', async ({ params, request }) => { const t = savingsTransactions.find((x) => x.id === params.id); if (t) { const b = await request.json().catch(() => ({})); t.auditedStatus = 'Discrepant'; t.auditNote = (b as { note?: string }).note; } return json(t ?? {}); }),
+  http.post('/api/audit/transactions/:id/unaudit', ({ params }) => { const t = savingsTransactions.find((x) => x.id === params.id); if (t) t.auditedStatus = 'Unaudited'; return json(t ?? {}); }),
+  http.post('/api/audit/transactions/:id/note', async ({ params, request }) => { const t = savingsTransactions.find((x) => x.id === params.id); const b = await request.json().catch(() => ({})); if (t) t.auditNote = (b as { note?: string }).note; return json(t ?? {}); }),
+  http.get('/api/audit/logs', () => json(auditLogs)),
+
+  http.get('/api/dop', () => json([{ id: '1', opDate: '2026-09-09', branchId: '1', vaultId: '1', status: 'Open', openedBy: 'Sisay Worku', openedAt: '2026-09-09T08:00:00', closedBy: null, closedAt: null }])),
+  http.get('/api/dop/open', () => json({ id: '1', opDate: '2026-09-09', branchId: '1', vaultId: '1', status: 'Open', openedBy: 'Sisay Worku', openedAt: '2026-09-09T08:00:00' })),
+  http.post('/api/dop/start', async () => { await delay(400); return json({ ok: true }); }),
+  http.post('/api/dop/close', async () => { await delay(400); return json({ ok: true }); }),
+
+  http.get('/api/reports/loan-aging', () => json([
+    { bucket: 'Current', count: 12, balance: 861000 },
+    { bucket: 'Substandard', count: 2, balance: 94000 },
+    { bucket: 'Doubtful', count: 1, balance: 61000 },
+    { bucket: 'Loss', count: 1, balance: 27000 },
+  ])),
+  http.get('/api/reports/delinquency', () => json([
+    { loanNo: 'LN-2026-002', overdueDays: 45, balance: 61000, classification: 'Substandard', status: 'Partially Paid' },
+    { loanNo: 'LN-2026-001', overdueDays: 15, balance: 58000, classification: 'Special Mention', status: 'Partially Paid' },
+  ])),
+  http.get('/api/reports/loan-disbursement-by-gender', () => json([{ gender: 'M', amount: 1200000, count: 6 }, { gender: 'F', amount: 980000, count: 5 }])),
+  http.get('/api/reports/loan-disbursement-by-product', () => json([{ product: 'L-PER', amount: 800000 }, { product: 'L-EDU', amount: 420000 }])),
+  http.get('/api/reports/top-borrowers', () => json([{ member: 'Tigist Fikre', loanNo: 'LN-2026-009', balance: 538000 }, { member: 'Samuel Worku', loanNo: 'LN-2026-011', balance: 270000 }])),
+  http.get('/api/reports/transactions', () => json({ deposits: 24, withdrawals: 15, depositAmount: 850000, withdrawalAmount: 420000, total: 42 })),
+  http.get('/api/reports/customers', () => json({ total: 20, active: 16, dormant: 2, suspended: 2 })),
+  http.get('/api/reports/shares', () => json({ membersWithShares: 20, totalShareValue: 4820000 })),
 ];
 
 export const reportRows = {

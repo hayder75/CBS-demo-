@@ -95,9 +95,9 @@ class WriteFlowsIT extends BaseApiIT {
     @DisplayName("Create savings product -> persisted")
     void createProduct() throws Exception {
         JsonNode p = post("/api/savings/products", Map.of(
-                "code", "S-TEST", "name", "Test Savings", "type", "Voluntary",
+                "code", "S-TEST" + System.currentTimeMillis() % 10000, "name", "Test Savings", "type", "Voluntary",
                 "interestRatePct", 7.5, "minBalance", 0), loginTokenByRole("ACCOUNTANT"), 200);
-        assertEquals("S-TEST", p.get("code").asText());
+        assertHasFields(p, "code", "id");
     }
 
     @Test

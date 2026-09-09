@@ -79,6 +79,26 @@ public class Loan {
     @Column(name = "next_due_date")
     private LocalDate nextDueDate;
 
+    private String purpose;
+
+    @Column(name = "repayment_account_id")
+    private Long repaymentAccountId;
+
+    @Column(name = "reserve_account_id")
+    private Long reserveAccountId;
+
+    @Column(name = "group_id")
+    private Long groupId;
+
+    @Column(name = "committee_id")
+    private Long committeeId;
+
+    @Column(name = "decision_note")
+    private String decisionNote;
+
+    @Column(name = "grace_months")
+    private Integer graceMonths = 0;
+
     @OneToMany(mappedBy = "loan", fetch = FetchType.EAGER)
     private List<Guarantor> guarantors = new ArrayList<>();
 }

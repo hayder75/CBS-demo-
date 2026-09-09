@@ -28,4 +28,22 @@ public class GlAccount {
     private String category;
 
     private BigDecimal balance = BigDecimal.ZERO;
+
+    @Column(name = "class_id")
+    private Long classId;
+
+    @Column(name = "parent_id")
+    private Long parentId;
+
+    @Column
+    private String side;
+
+    @Column(name = "allow_debit")
+    private Boolean allowDebit = true;
+
+    @Column(name = "allow_credit")
+    private Boolean allowCredit = true;
+
+    @Column(name = "currency_code")
+    private String currencyCode = "ETB";
 }

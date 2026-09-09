@@ -69,6 +69,7 @@ export interface SavingsProduct {
   interestRatePct: number;
   minBalance: number;
   noticePeriodDays?: number;
+  status?: 'Pending' | 'Verified';
 }
 
 export interface SavingsTransaction {
@@ -80,6 +81,12 @@ export interface SavingsTransaction {
   amount: number;
   teller: string;
   channel: 'Cash' | 'Check-Off' | 'Digital' | 'Bank';
+  payStatus?: string;
+  auditedStatus?: 'Unaudited' | 'Audited' | 'Discrepant';
+  auditedBy?: string;
+  auditedAt?: string;
+  auditNote?: string;
+  paymentMode?: string;
 }
 
 export interface LoanProduct {
@@ -160,6 +167,12 @@ export interface GLAccount {
   name: string;
   category: 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense';
   balance: number;
+  classId?: string;
+  parentId?: string;
+  side?: 'DEBIT' | 'CREDIT';
+  allowDebit?: boolean;
+  allowCredit?: boolean;
+  currencyCode?: string;
 }
 
 export interface JournalEntry {
@@ -299,4 +312,255 @@ export interface Kpi {
   savingsGrowthPct: number;
   dividendPerShare?: number;
   approvalsPending: number;
+}
+
+// ============================================================
+// Franc Core Banking parity types
+// ============================================================
+
+export interface Branch {
+  id: string;
+  code: string;
+  name: string;
+  address: string;
+  phone: string;
+  status: 'Pending' | 'Verified' | 'Inactive' | 'Closed';
+  createdAt: string;
+}
+
+export interface Currency {
+  id: string;
+  code: string;
+  name: string;
+  notesLabel: string;
+  centsLabel: string;
+  exchangeRate: number;
+  status: 'Pending' | 'Verified';
+}
+
+export interface PaymentMode {
+  id: string;
+  code: string;
+  name: string;
+  paymentType: 'CASH' | 'NON_CASH';
+  description: string;
+  status: 'Pending' | 'Verified';
+}
+
+export interface Vault {
+  id: string;
+  code: string;
+  name: string;
+  location: string;
+  type: 'BRANCH' | 'HEAD' | 'BANK';
+  status: 'Pending' | 'Verified';
+}
+
+export interface SavingsAccount {
+  id: string;
+  accountNo: string;
+  memberId: string;
+  productId: string;
+  accountType: string;
+  openedDate: string;
+  balance: number;
+  status: 'Pending' | 'Active' | 'Dormant' | 'Closed';
+  currencyId: string;
+  branchId: string;
+}
+
+export interface Signatory {
+  id: string;
+  accountId: string;
+  memberId: string;
+  primary: boolean;
+}
+
+export interface ShareCategory {
+  id: string;
+  code: string;
+  name: string;
+  totalShares: number;
+  nominalPrice: number;
+  sharesForSale: number;
+  minPerCustomer: number;
+  maxPerCustomer: number;
+  paymentAgreementMonths: number;
+  status: 'Pending' | 'Verified';
+}
+
+export interface ShareAccount {
+  id: string;
+  memberId: string;
+  categoryId: string;
+  savingAccountId: string;
+  shareCount: number;
+  description: string;
+  status: 'Pending' | 'Verified';
+}
+
+export interface ShareRequest {
+  id: string;
+  shareAccountId: string;
+  requestType: 'UPGRADE' | 'DOWNGRADE';
+  shareCount: number;
+  status: 'Pending' | 'Approved' | 'Rejected';
+}
+
+export interface Charge {
+  id: string;
+  code: string;
+  name: string;
+  serviceType: string;
+  glAccountId: string;
+  calcType: 'Flat' | 'Fixed' | 'Percentile';
+  amount: number;
+  applyPenalty: boolean;
+  status: 'Pending' | 'Verified';
+}
+
+export interface FundReservation {
+  id: string;
+  accountId: string;
+  memberId: string;
+  amount: number;
+  reason: string;
+  reservedAt: string;
+  reservedBy: string;
+  status: 'Active' | 'Released';
+}
+
+export interface TransactionLimit {
+  id: string;
+  roleCode: string;
+  txnType: 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER';
+  maxAmount: number;
+}
+
+export interface LoanCategory {
+  id: string;
+  name: string;
+  description: string;
+  status: 'Pending' | 'Verified';
+}
+
+export interface LoanGroup {
+  id: string;
+  code: string;
+  name: string;
+  maxMembers: number;
+  status: 'Pending' | 'Verified';
+}
+
+export interface LoanGroupMember {
+  id: string;
+  groupId: string;
+  memberId: string;
+  amount: number;
+  installments: number;
+  graceMonths: number;
+}
+
+export interface CreditCommittee {
+  id: string;
+  name: string;
+  minAmount: number;
+  maxAmount: number;
+  status: 'Pending' | 'Verified';
+}
+
+export interface CommitteeMember {
+  id: string;
+  committeeId: string;
+  userId: string;
+  username: string;
+}
+
+export interface BatchJob {
+  id: string;
+  jobType: string;
+  name: string;
+  status: 'Idle' | 'Running' | 'Done' | 'Failed';
+  lastRunAt: string;
+}
+
+export interface FixedAsset {
+  id: string;
+  code: string;
+  name: string;
+  value: number;
+  depreciationRate: number;
+  dprLink: string;
+  glLink: string;
+  branch: string;
+  status: string;
+}
+
+export interface GlClass {
+  id: string;
+  name: string;
+  status: 'Pending' | 'Verified';
+}
+
+export interface GlLeaf {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  balance: number;
+  classId: string;
+  parentId: string;
+  side: 'DEBIT' | 'CREDIT';
+  allowDebit: boolean;
+  allowCredit: boolean;
+  currencyCode: string;
+}
+
+export interface Payment {
+  id: string;
+  paymentNo: string;
+  kind: 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER' | 'ADJUSTMENT' | 'BRANCH_CLAIM' | 'MASS_TRANSFER' | 'REVERSAL';
+  memberId: string;
+  accountId: string;
+  fromRef: string;
+  toRef: string;
+  amount: number;
+  paymentModeId: string;
+  description: string;
+  status: 'Pending' | 'Authorized' | 'Rejected' | 'Reversed';
+  createdBy: string;
+  createdAt: string;
+  authorizedBy: string;
+  authorizedAt: string;
+  reversalOf: string;
+}
+
+export interface DailyOperation {
+  id: string;
+  opDate: string;
+  branchId: string;
+  vaultId: string;
+  status: 'Open' | 'Closed';
+  openedBy: string;
+  openedAt: string;
+  closedBy: string;
+  closedAt: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  username: string;
+  action: string;
+  entity: string;
+  entityId: string;
+  detail: string;
+  occurredAt: string;
+}
+
+export type AuditStatus = 'Unaudited' | 'Audited' | 'Discrepant';
+
+export interface LoanReportRow {
+  bucket: string;
+  count: number;
+  balance: number;
 }

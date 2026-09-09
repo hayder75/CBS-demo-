@@ -14,6 +14,14 @@ import Shares from './pages/Shares';
 import CashOps from './pages/CashOps';
 import Reports from './pages/Reports';
 import Approvals from './pages/Approvals';
+import Products from './pages/Products';
+import Registration from './pages/Registration';
+import Payments from './pages/Payments';
+import Admin from './pages/Admin';
+import Auditing from './pages/Auditing';
+import Finance from './pages/Finance';
+import DataMigration from './pages/DataMigration';
+import LoanAdmin from './pages/LoanAdmin';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -50,6 +58,14 @@ export default function App() {
         <Route path="cashops" element={<CashOps />} />
         <Route path="reports" element={<Reports />} />
         <Route path="approvals" element={<Approvals />} />
+        <Route path="products" element={<Products />} />
+        <Route path="registration" element={<Registration />} />
+        <Route path="payments" element={<Payments />} />
+        <Route path="admin" element={<Admin />} />
+        <Route path="auditing" element={<Auditing />} />
+        <Route path="finance" element={<Finance />} />
+        <Route path="data-migration" element={<DataMigration />} />
+        <Route path="loan-admin" element={<LoanAdmin />} />
       </Route>
     </Routes>
   );
