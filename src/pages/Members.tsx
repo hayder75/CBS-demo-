@@ -18,10 +18,17 @@ import {
   message,
 } from 'antd';
 import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  DollarOutlined,
+  DownloadOutlined,
   PlusOutlined,
+  TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
 import dayjs from 'dayjs';
 import { FaydaIdInput, faydaValueFromEvent } from '../components/FaydaIdInput';
 import { useMembers } from '../context/MembersContext';
@@ -93,29 +100,54 @@ export default function Members() {
   );
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Row gutter={16}>
-        <Col span={24}>
-          <Card>
-            <Row gutter={16} align="middle">
-              <Col flex="auto">
-                <Space>
-                  <Typography.Text strong>Members</Typography.Text>
-                  <Tag>{summary.total} total</Tag>
-                  <Tag color="green">{summary.active} active</Tag>
-                  <Tag color="orange">{summary.dormant} dormant</Tag>
-                  <Tag color="red">{summary.suspended} suspended</Tag>
-                  <Tag color="blue">{fmtETB(summary.shares)} shares</Tag>
-                  <Tag color="cyan">{fmtETB(summary.savings)} savings</Tag>
-                </Space>
-              </Col>
-              <Col>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-                  New Member
-                </Button>
-              </Col>
-            </Row>
-          </Card>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Members"
+        subtitle="Member registry, statuses and balances across all branches"
+        extra={
+          <Space>
+            <Button icon={<DownloadOutlined />}>Export</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+              New Member
+            </Button>
+          </Space>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Members"
+            value={summary.total}
+            icon={<TeamOutlined style={{ color: '#0e7a5f' }} />}
+            delta={8.4}
+            caption="Compared to last month"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Active Members"
+            value={summary.active}
+            icon={<CheckCircleOutlined style={{ color: '#12b76a' }} />}
+            delta={5.1}
+            caption="Compared to last month"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Dormant"
+            value={summary.dormant}
+            icon={<ClockCircleOutlined style={{ color: '#f79009' }} />}
+            caption={`${summary.suspended} suspended`}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Savings"
+            value={fmtETB(summary.savings)}
+            icon={<DollarOutlined style={{ color: '#2e90fa' }} />}
+            caption={`${fmtETB(summary.shares)} shares`}
+          />
         </Col>
       </Row>
 

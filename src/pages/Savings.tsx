@@ -17,6 +17,7 @@ import {
   message,
 } from 'antd';
 import {
+  AppstoreOutlined,
   ArrowDownOutlined,
   FieldTimeOutlined,
   MoneyCollectOutlined,
@@ -25,6 +26,9 @@ import {
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
+import { colors } from '../theme';
 import { api } from '../api/client';
 import type { Member, SavingsProduct, SavingsTransaction } from '../types';
 import { fmtETB } from '../utils/format';
@@ -150,36 +154,10 @@ export default function Savings() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={8}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Total Deposits (period)</Typography.Text>
-            <Typography.Title level={3} style={{ color: '#52c41a', margin: 0 }}>
-              <MoneyCollectOutlined /> {fmtETB(totals.deposits)}
-            </Typography.Title>
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Total Withdrawals (period)</Typography.Text>
-            <Typography.Title level={3} style={{ color: '#f5222d', margin: 0 }}>
-              <ArrowDownOutlined /> {fmtETB(totals.withdrawals)}
-            </Typography.Title>
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Interest Posted</Typography.Text>
-            <Typography.Title level={3} style={{ color: '#722ed1', margin: 0 }}>
-              <SaveOutlined /> {fmtETB(totals.interest)}
-            </Typography.Title>
-          </Card>
-        </Col>
-      </Row>
-
-      <Card
-        title="Savings Products"
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Savings"
+        subtitle="Savings products, deposit and withdrawal activity across the SACCO"
         extra={
           <Space>
             <Button icon={<PlusOutlined />} onClick={() => setProductOpen(true)}>
@@ -194,10 +172,52 @@ export default function Savings() {
                 Run Interest Posting
               </Button>
             </Popconfirm>
+            <Button type="primary" icon={<MoneyCollectOutlined />} onClick={() => openTxn('Deposit')}>
+              New Deposit
+            </Button>
           </Space>
         }
-      >
-        <Row gutter={[16, 16]}>
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Deposits (period)"
+            value={fmtETB(totals.deposits)}
+            icon={<MoneyCollectOutlined style={{ color: colors.success }} />}
+            delta={6.4}
+            caption="Compared to last period"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Withdrawals (period)"
+            value={fmtETB(totals.withdrawals)}
+            icon={<ArrowDownOutlined style={{ color: colors.danger }} />}
+            delta={-2.8}
+            caption="Compared to last period"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Interest Posted"
+            value={fmtETB(totals.interest)}
+            icon={<SaveOutlined style={{ color: '#7a5af8' }} />}
+            caption="Latest monthly posting run"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Savings Products"
+            value={products.length}
+            icon={<AppstoreOutlined style={{ color: colors.info }} />}
+            caption={`${txns.length} transactions recorded`}
+          />
+        </Col>
+      </Row>
+
+      <Card title="Savings Products">
+        <Row gutter={[20, 20]}>
           {products.map((p) => (
             <Col xs={24} sm={12} lg={8} key={p.id}>
               <Card size="small">
@@ -245,9 +265,6 @@ export default function Savings() {
               onChange={setTypeFilter}
               options={['Deposit', 'Withdrawal', 'Transfer In', 'Transfer Out', 'Interest', 'Dividend'].map((t) => ({ label: t, value: t }))}
             />
-            <Button type="primary" icon={<MoneyCollectOutlined />} onClick={() => openTxn('Deposit')}>
-              New Deposit
-            </Button>
             <Button icon={<ArrowDownOutlined />} onClick={() => openTxn('Withdrawal')}>
               Withdraw
             </Button>
@@ -263,6 +280,7 @@ export default function Savings() {
             {
               title: 'Member',
               dataIndex: 'memberId',
+              ellipsis: true,
               render: (v) => (
                 <Typography.Text>
                   {members.find((m) => String(m.id) === String(v))?.fullName ?? String(v).toUpperCase()}
@@ -272,6 +290,7 @@ export default function Savings() {
             {
               title: 'Product',
               dataIndex: 'productId',
+              ellipsis: true,
               render: (v) => {
                 const p = products.find((x) => String(x.id) === String(v));
                 return p ? `${p.name}` : String(v);

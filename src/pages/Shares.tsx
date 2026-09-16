@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   Col,
-  Descriptions,
   Form,
   InputNumber,
   Modal,
@@ -15,12 +14,21 @@ import {
   Typography,
   message,
 } from 'antd';
-import { FundOutlined, PercentageOutlined, SwapOutlined } from '@ant-design/icons';
+import {
+  DollarOutlined,
+  FundOutlined,
+  PercentageOutlined,
+  SwapOutlined,
+  TeamOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
 import { api } from '../api/client';
 import type { DividendRun, Member, ShareTransfer } from '../types';
 import { fmtETB, fmtNum } from '../utils/format';
+import { colors } from '../theme';
 
 export default function Shares() {
   const [transfers, setTransfers] = useState<ShareTransfer[]>([]);
@@ -64,47 +72,74 @@ export default function Shares() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={12}>
-          <Card title="Share Capital">
-            <Descriptions column={2} bordered size="small">
-              <Descriptions.Item label="Total Members">{fmtNum(members.length || 1428)}</Descriptions.Item>
-              <Descriptions.Item label="Min. Qualifying Shares">200</Descriptions.Item>
-              <Descriptions.Item label="Share Par Value">{fmtETB(100)}</Descriptions.Item>
-              <Descriptions.Item label="Nominal Share Capital">{fmtETB(4820000)}</Descriptions.Item>
-            </Descriptions>
-            <Typography.Text type="secondary" style={{ display: 'block', marginTop: 12, fontSize: 12 }}>
-              Weighted-duration method prevents late share purchases from earning a full-year dividend.
-            </Typography.Text>
-          </Card>
-        </Col>
-        <Col xs={24} md={12}>
-          <Card title="Pending Share Transfers">
-            <Table
-              size="small"
-              rowKey="id"
-              dataSource={transfers.filter((t) => t.status === 'Pending')}
-              pagination={false}
-              columns={[
-                { title: 'From', dataIndex: 'fromMember' },
-                { title: 'To', dataIndex: 'toMember' },
-                { title: 'Shares', dataIndex: 'shares', align: 'right' },
-                { title: 'Value', dataIndex: 'value', align: 'right', render: (v) => fmtETB(v) },
-              ]}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Card
-        title="Dividend History"
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Shares"
+        subtitle="Share capital, transfers and dividend distribution"
         extra={
           <Button type="primary" icon={<PercentageOutlined />} onClick={() => setTransferOpen(true)}>
             Share Transfer
           </Button>
         }
-      >
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Shareholders"
+            value={fmtNum(members.length || 1428)}
+            icon={<TeamOutlined style={{ color: colors.primary }} />}
+            caption="Across all branches"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Share Par Value"
+            value={fmtETB(100)}
+            icon={<DollarOutlined style={{ color: colors.info }} />}
+            caption="Per share"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Nominal Share Capital"
+            value={fmtETB(4820000)}
+            icon={<FundOutlined style={{ color: colors.success }} />}
+            caption="Weighted-duration method"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Dividend / Share"
+            value={current?.dividendPerShare ?? '—'}
+            suffix="ETB"
+            icon={<PercentageOutlined style={{ color: colors.accent }} />}
+            caption="Last declared"
+          />
+        </Col>
+      </Row>
+
+      <Card title="Pending Share Transfers">
+        <Table
+          size="small"
+          rowKey="id"
+          dataSource={transfers.filter((t) => t.status === 'Pending')}
+          pagination={false}
+          columns={[
+            { title: 'From', dataIndex: 'fromMember', ellipsis: true },
+            { title: 'To', dataIndex: 'toMember', ellipsis: true },
+            { title: 'Shares', dataIndex: 'shares', align: 'right' },
+            { title: 'Value', dataIndex: 'value', align: 'right', render: (v) => fmtETB(v) },
+            {
+              title: 'Status',
+              dataIndex: 'status',
+              render: (s) => <Tag color={s === 'Pending' ? 'gold' : 'default'}>{s}</Tag>,
+            },
+          ]}
+        />
+      </Card>
+
+      <Card title="Dividend History">
         <Table
           rowKey="id"
           dataSource={dividends}
@@ -133,6 +168,9 @@ export default function Shares() {
             <FundOutlined /> Dividend recommendation for financial year 2026 will be computed after
             year-end closing using approved shareholding methodology. Statutory reserve deduction is
             applied before distribution (§9).
+          </Typography.Text>
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            Weighted-duration method prevents late share purchases from earning a full-year dividend.
           </Typography.Text>
           <Space>
             <Tag color="purple">Last declared: {current?.dividendPerShare ?? '—'} ETB/share</Tag>

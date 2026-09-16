@@ -15,9 +15,17 @@ import {
   Typography,
   message,
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
+  BankOutlined,
+  FundOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { PageHeader } from '../components/PageHeader';
+import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
 import type { FixedAsset, GLAccount, GlClass } from '../types';
 import { fmtETB } from '../utils/format';
@@ -90,7 +98,59 @@ export default function Finance() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Finance"
+        subtitle="General ledger, financial statements and fixed asset register"
+        extra={
+          <Space>
+            <Button icon={<PlusOutlined />} onClick={() => setClassOpen(true)}>
+              New Class
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setAssetOpen(true)}>
+              New Asset
+            </Button>
+          </Space>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Debits"
+            value={fmtETB(trialTotals.debit)}
+            icon={<BankOutlined style={{ color: '#0e7a5f' }} />}
+            caption={`Credits ${fmtETB(trialTotals.credit)}`}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Income"
+            value={fmtETB(income)}
+            icon={<ArrowUpOutlined style={{ color: '#12b76a' }} />}
+            delta={5.8}
+            caption="Period to date"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Expenses"
+            value={fmtETB(expense)}
+            icon={<ArrowDownOutlined style={{ color: '#f04438' }} />}
+            delta={-2.1}
+            caption="Period to date"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Net Surplus"
+            value={fmtETB(income - expense)}
+            icon={<FundOutlined style={{ color: '#2e90fa' }} />}
+            caption={`${assets.length} fixed assets`}
+          />
+        </Col>
+      </Row>
+
       <Tabs
         items={[
           {
@@ -127,7 +187,7 @@ export default function Finance() {
             label: 'Profit & Loss',
             children: (
               <Card title="Profit & Loss Statement">
-                <Row gutter={[16, 16]}>
+                <Row gutter={[20, 20]}>
                   <Col span={8}><Card size="small"><Typography.Text type="secondary">Income</Typography.Text><Typography.Title level={3} style={{ color: '#52c41a', margin: 0 }}>{fmtETB(income)}</Typography.Title></Card></Col>
                   <Col span={8}><Card size="small"><Typography.Text type="secondary">Expenses</Typography.Text><Typography.Title level={3} style={{ color: '#f5222d', margin: 0 }}>{fmtETB(expense)}</Typography.Title></Card></Col>
                   <Col span={8}><Card size="small"><Typography.Text type="secondary">Net Surplus</Typography.Text><Typography.Title level={3} style={{ color: '#0e7a5f', margin: 0 }}>{fmtETB(income - expense)}</Typography.Title></Card></Col>
@@ -179,7 +239,7 @@ export default function Finance() {
                 extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setClassOpen(true)}>New Class</Button>}
               >
                 <Space direction="vertical" style={{ width: '100%' }} size={16}>
-                  <Row gutter={[16, 16]}>
+                  <Row gutter={[20, 20]}>
                     {classes.map((c) => (
                       <Col span={8} key={c.id}>
                         <Card size="small">

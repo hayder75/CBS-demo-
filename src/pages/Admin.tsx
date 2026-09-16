@@ -15,9 +15,17 @@ import {
   Typography,
   message,
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import {
+  BankOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  FileTextOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { PageHeader } from '../components/PageHeader';
+import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
 import type { AuditLogEntry, Branch, TransactionLimit } from '../types';
 import { fmtETB } from '../utils/format';
@@ -57,8 +65,60 @@ export default function Admin() {
 
   const act = async (path: string, msg: string) => { await api(path, { method: 'POST' }); message.success(msg); await load(); };
 
+  const verifiedBranches = branches.filter((b) => b.status === 'Verified').length;
+  const pendingBranches = branches.filter((b) => b.status === 'Pending').length;
+
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Administration"
+        subtitle="Branch network, transaction limits and system audit trail"
+        extra={
+          <Space>
+            <Button icon={<FileTextOutlined />}>Export Logs</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen('branch')}>
+              New Branch
+            </Button>
+          </Space>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Branches"
+            value={branches.length}
+            icon={<BankOutlined style={{ color: '#0e7a5f' }} />}
+            delta={4.2}
+            caption="Across the network"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Verified Branches"
+            value={verifiedBranches}
+            icon={<CheckCircleOutlined style={{ color: '#12b76a' }} />}
+            caption={`${pendingBranches} pending review`}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Transaction Limits"
+            value={limits.length}
+            icon={<ClockCircleOutlined style={{ color: '#f79009' }} />}
+            caption="Role-based thresholds"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Audit Events"
+            value={logs.length}
+            icon={<FileTextOutlined style={{ color: '#2e90fa' }} />}
+            caption="Recorded in the audit trail"
+          />
+        </Col>
+      </Row>
+
       <Tabs
         items={[
           {
@@ -73,7 +133,7 @@ export default function Admin() {
                   columns={[
                     { title: 'Code', dataIndex: 'code', width: 90 },
                     { title: 'Branch', dataIndex: 'name' },
-                    { title: 'Address', dataIndex: 'address' },
+                    { title: 'Address', dataIndex: 'address', ellipsis: true },
                     { title: 'Phone', dataIndex: 'phone', width: 140 },
                     { title: 'Status', dataIndex: 'status', width: 100, render: (s: string) => <Tag color={s === 'Verified' || s === 'Active' ? 'green' : s === 'Pending' ? 'gold' : s === 'Inactive' ? 'orange' : 'default'}>{s}</Tag> },
                     {

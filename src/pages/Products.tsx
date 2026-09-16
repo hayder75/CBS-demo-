@@ -16,12 +16,21 @@ import {
   message,
   Tabs,
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import {
+  ClockCircleOutlined,
+  FileTextOutlined,
+  PieChartOutlined,
+  PlusOutlined,
+  WalletOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { PageHeader } from '../components/PageHeader';
+import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
 import type { Charge, ShareCategory, SavingsProduct } from '../types';
 import { fmtETB } from '../utils/format';
+import { colors } from '../theme';
 
 const statusCol = (s: string) => (
   <Tag color={s === 'Verified' || s === 'Active' ? 'green' : s === 'Pending' ? 'gold' : 'default'}>{s}</Tag>
@@ -69,9 +78,13 @@ export default function Products() {
     await load();
   };
 
+  const pendingCount = [...savingsProducts, ...shareCategories, ...charges].filter(
+    (p) => p.status === 'Pending',
+  ).length;
+
   const scCols = [
     { title: 'Code', dataIndex: 'code', width: 90 },
-    { title: 'Name', dataIndex: 'name' },
+    { title: 'Name', dataIndex: 'name', ellipsis: true },
     { title: 'Total Shares', dataIndex: 'totalShares', align: 'right' as const },
     { title: 'Nominal', dataIndex: 'nominalPrice', align: 'right' as const, render: (v: number) => fmtETB(v) },
     { title: 'For Sale', dataIndex: 'sharesForSale', align: 'right' as const },
@@ -86,7 +99,7 @@ export default function Products() {
 
   const chCols = [
     { title: 'Code', dataIndex: 'code', width: 100 },
-    { title: 'Charge', dataIndex: 'name' },
+    { title: 'Charge', dataIndex: 'name', ellipsis: true },
     { title: 'Service', dataIndex: 'serviceType', width: 120 },
     { title: 'Type', dataIndex: 'calcType', width: 100 },
     { title: 'Amount', dataIndex: 'amount', align: 'right' as const, render: (v: number) => fmtETB(v) },
@@ -99,7 +112,47 @@ export default function Products() {
   ];
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Products"
+        subtitle="Savings, share and charge products with verification workflow"
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Saving Categories"
+            value={savingsProducts.length}
+            icon={<WalletOutlined style={{ color: colors.primary }} />}
+            caption="Savings products configured"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Share Categories"
+            value={shareCategories.length}
+            icon={<PieChartOutlined style={{ color: colors.info }} />}
+            caption="Equity share classes"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Charges"
+            value={charges.length}
+            icon={<FileTextOutlined style={{ color: '#7a5af8' }} />}
+            caption="Fees and penalties"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Pending Verification"
+            value={pendingCount}
+            icon={<ClockCircleOutlined style={{ color: colors.accent }} />}
+            caption="Awaiting checker"
+          />
+        </Col>
+      </Row>
+
       <Tabs
         items={[
           {
@@ -110,7 +163,7 @@ export default function Products() {
                 title="Saving Categories"
                 extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setSpOpen(true)}>New Category</Button>}
               >
-                <Row gutter={[16, 16]}>
+                <Row gutter={[20, 20]}>
                   {savingsProducts.map((p) => (
                     <Col xs={24} sm={12} lg={8} key={p.id}>
                       <Card size="small">

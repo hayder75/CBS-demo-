@@ -11,8 +11,16 @@ import {
   Typography,
   message,
 } from 'antd';
-import { CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons';
+import {
+  AppstoreOutlined,
+  CloudUploadOutlined,
+  DownloadOutlined,
+  FileTextOutlined,
+  TableOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { PageHeader } from '../components/PageHeader';
+import { StatCard } from '../components/StatCard';
 import { parseCsv, downloadCsv } from '../utils/csv';
 import type { CsvRow } from '../utils/csv';
 
@@ -74,14 +82,62 @@ export default function DataMigration() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Card>
-        <Typography.Title level={4}>Data Migration & Template Imports</Typography.Title>
-        <Typography.Paragraph type="secondary">
-          Migrate legacy data using structured templates. Download a template, fill it, upload and
-          validate. Columns: {templates[active].columns.join(', ')}.
-        </Typography.Paragraph>
-      </Card>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Data Migration"
+        subtitle={`Migrate legacy data using structured templates. Columns: ${templates[active].columns.join(', ')}.`}
+        extra={
+          <Space>
+            <Button icon={<DownloadOutlined />} onClick={downloadTemplate}>
+              Download Template
+            </Button>
+            <Button
+              type="primary"
+              icon={<CloudUploadOutlined />}
+              disabled={preview.length === 0}
+              onClick={finishImport}
+            >
+              Import {preview.length} rows
+            </Button>
+          </Space>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Available Templates"
+            value={Object.keys(templates).length}
+            icon={<AppstoreOutlined style={{ color: '#0e7a5f' }} />}
+            caption="Accounts, shares, GL, loans"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Active Template"
+            value={label[active].replace('Import ', '')}
+            icon={<FileTextOutlined style={{ color: '#2e90fa' }} />}
+            caption={`${tpl.columns.length} columns`}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Template Columns"
+            value={tpl.columns.length}
+            icon={<TableOutlined style={{ color: '#f79009' }} />}
+            caption="Required fields"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Records Parsed"
+            value={preview.length}
+            icon={<CloudUploadOutlined style={{ color: '#12b76a' }} />}
+            delta={preview.length > 0 ? 100 : undefined}
+            caption={preview.length > 0 ? 'Ready to validate' : 'Awaiting upload'}
+          />
+        </Col>
+      </Row>
 
       <Tabs
         activeKey={active}
@@ -89,7 +145,7 @@ export default function DataMigration() {
         items={Object.keys(templates).map((k) => ({ key: k, label: label[k] }))}
       />
 
-      <Row gutter={[16, 16]}>
+      <Row gutter={[20, 20]}>
         <Col xs={24} lg={8}>
           <Card title={label[active]}>
             <Space direction="vertical" style={{ width: '100%' }} size={12}>

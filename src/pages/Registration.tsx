@@ -15,11 +15,20 @@ import {
   Tag,
   message,
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import {
+  BankOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  DollarOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { PageHeader } from '../components/PageHeader';
+import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
 import type { Currency, Member, PaymentMode, SavingsAccount, SavingsProduct, ShareAccount, ShareCategory, ShareRequest, Vault } from '../types';
 import { fmtETB } from '../utils/format';
+import { colors } from '../theme';
 
 const statusTag = (s: string) => (
   <Tag color={s === 'Active' || s === 'Verified' || s === 'Open' ? 'green' : s === 'Pending' ? 'gold' : 'default'}>{s}</Tag>
@@ -111,8 +120,56 @@ export default function Registration() {
     },
   ];
 
+  const activeAccounts = accounts.filter((a) => a.status === 'Active').length;
+  const totalBalance = accounts.reduce((s, a) => s + a.balance, 0);
+  const pendingCount =
+    accounts.filter((a) => a.status === 'Pending').length +
+    shares.filter((s) => s.status === 'Pending').length +
+    vaults.filter((v) => v.status === 'Pending').length +
+    paymentModes.filter((m) => m.status === 'Pending').length;
+
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Registration"
+        subtitle="Customer accounts, share holdings, vaults, payment modes and currencies"
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Customer Accounts"
+            value={accounts.length}
+            icon={<BankOutlined style={{ color: colors.primary }} />}
+            caption="Savings accounts on file"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Active Accounts"
+            value={activeAccounts}
+            icon={<CheckCircleOutlined style={{ color: colors.success }} />}
+            caption="Open and transacting"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Balance"
+            value={fmtETB(totalBalance)}
+            icon={<DollarOutlined style={{ color: colors.info }} />}
+            caption="Across all accounts"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Pending Verification"
+            value={pendingCount}
+            icon={<ClockCircleOutlined style={{ color: colors.accent }} />}
+            caption="Awaiting checker"
+          />
+        </Col>
+      </Row>
+
       <Tabs
         items={[
           {

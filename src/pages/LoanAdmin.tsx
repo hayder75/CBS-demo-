@@ -9,14 +9,23 @@ import {
   Modal,
   Row,
   Select,
+  Space,
   Table,
   Tabs,
   Tag,
   message,
 } from 'antd';
-import { PlayCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  AppstoreOutlined,
+  ClusterOutlined,
+  PlayCircleOutlined,
+  PlusOutlined,
+  TeamOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { PageHeader } from '../components/PageHeader';
+import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
 import type { BatchJob, CreditCommittee, LoanCategory, LoanGroup } from '../types';
 import { fmtETB } from '../utils/format';
@@ -59,7 +68,57 @@ export default function LoanAdmin() {
   const act = async (path: string, msg: string) => { await api(path, { method: 'POST' }); message.success(msg); await load(); };
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Loan Administration"
+        subtitle="Credit committees, loan categories, groups and batch processing"
+        extra={
+          <Space>
+            <Button icon={<PlayCircleOutlined />} onClick={() => setOpen('job')}>
+              New Job
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen('committee')}>
+              New Committee
+            </Button>
+          </Space>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Credit Committees"
+            value={committees.length}
+            icon={<TeamOutlined style={{ color: '#0e7a5f' }} />}
+            caption={`${committees.filter((c) => c.status === 'Pending').length} pending verification`}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Loan Categories"
+            value={categories.length}
+            icon={<AppstoreOutlined style={{ color: '#2e90fa' }} />}
+            caption={`${categories.filter((c) => c.status === 'Pending').length} pending verification`}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Loan Groups"
+            value={groups.length}
+            icon={<ClusterOutlined style={{ color: '#f79009' }} />}
+            caption={`${groups.filter((g) => g.status === 'Pending').length} pending verification`}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Batch Jobs"
+            value={jobs.length}
+            icon={<PlayCircleOutlined style={{ color: '#12b76a' }} />}
+            caption={`${jobs.filter((j) => j.status === 'Running').length} running now`}
+          />
+        </Col>
+      </Row>
+
       <Tabs
         items={[
           {

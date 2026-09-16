@@ -31,6 +31,7 @@ import { api } from '../api/client';
 import type { Member, SavingsAccount, SavingsProduct, SavingsTransaction } from '../types';
 import { fmtETB, fmtDate } from '../utils/format';
 import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
 
 const statusColor: Record<Member['status'], string> = {
   Active: 'green',
@@ -110,57 +111,67 @@ export default function MemberDetail() {
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
-      <Card style={{ borderRadius: 12 }}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col flex="auto">
-            <Space size={16}>
-              <Avatar size={56} style={{ background: member.photoColor || '#0e7a5f' }} icon={<UserOutlined />} />
-              <div>
-                <Space>
-                  <Typography.Title level={3} style={{ margin: 0 }}>
-                    {member.fullName}
-                  </Typography.Title>
-                  <Tag color={statusColor[member.status]}>{member.status}</Tag>
-                </Space>
-                <Space size={12} style={{ marginTop: 4 }}>
-                  <Typography.Text type="secondary">
-                    {member.memberNo} · Joined {fmtDate(member.joinDate)}
-                  </Typography.Text>
-                  <Typography.Text type="secondary">
-                    <EnvironmentOutlined /> {member.city}
-                  </Typography.Text>
-                  <Typography.Text type="secondary">
-                    <PhoneOutlined /> {member.phone}
-                  </Typography.Text>
-                </Space>
-              </div>
-            </Space>
-          </Col>
-          <Col>
-            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/members')}>
-              Back to Members
-            </Button>
-          </Col>
-        </Row>
-      </Card>
+      <PageHeader
+        title={member.fullName}
+        subtitle={`${member.memberNo} · Joined ${fmtDate(member.joinDate)}`}
+        tags={
+          <>
+            <Avatar
+              size={32}
+              style={{ background: member.photoColor || '#0e7a5f' }}
+              icon={<UserOutlined />}
+            />
+            <Tag color={statusColor[member.status]}>{member.status}</Tag>
+            <Typography.Text type="secondary">
+              <EnvironmentOutlined /> {member.city}
+            </Typography.Text>
+            <Typography.Text type="secondary">
+              <PhoneOutlined /> {member.phone}
+            </Typography.Text>
+          </>
+        }
+        extra={
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/members')}>
+            Back to Members
+          </Button>
+        }
+      />
 
-      <Row gutter={[16, 16]}>
+      <Row gutter={[20, 20]}>
         <Col xs={24} sm={12} xl={6}>
-          <StatCard title="Share Balance" value={fmtETB(member.shareBalance)} icon={<FundOutlined style={{ color: '#722ed1' }} />} footer={`${member.occupation}`} />
+          <StatCard
+            title="Share Balance"
+            value={fmtETB(member.shareBalance)}
+            icon={<FundOutlined style={{ color: '#7a5af8' }} />}
+            delta={6.4}
+            caption={member.occupation}
+          />
         </Col>
         <Col xs={24} sm={12} xl={6}>
-          <StatCard title="Savings Balance" value={fmtETB(member.savingsBalance)} icon={<DollarOutlined style={{ color: '#0e7a5f' }} />} footer={member.savingsBalance >= 0 ? 'Active savings account' : '—'} />
+          <StatCard
+            title="Savings Balance"
+            value={fmtETB(member.savingsBalance)}
+            icon={<DollarOutlined style={{ color: '#0e7a5f' }} />}
+            delta={member.savingsBalance >= 0 ? 4.8 : -2.1}
+            caption={member.savingsBalance >= 0 ? 'Active savings account' : 'Dormant account'}
+          />
         </Col>
         <Col xs={24} sm={12} xl={6}>
           <StatCard
             title="Loan Outstanding"
             value={member.loanOutstanding ? fmtETB(member.loanOutstanding) : 'None'}
-            icon={<BankOutlined style={{ color: member.loanOutstanding ? '#f5222d' : '#52c41a' }} />}
-            footer="Net of collateral & guarantors"
+            icon={<BankOutlined style={{ color: member.loanOutstanding ? '#f04438' : '#12b76a' }} />}
+            delta={member.loanOutstanding ? -3.5 : undefined}
+            caption="Net of collateral & guarantors"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
-          <StatCard title="Fayda ID" value={member.faydaId || '—'} icon={<IdcardOutlined style={{ color: '#1890ff' }} />} footer="National digital ID" />
+          <StatCard
+            title="Fayda ID"
+            value={member.faydaId || '—'}
+            icon={<IdcardOutlined style={{ color: '#2e90fa' }} />}
+            caption="National digital ID"
+          />
         </Col>
       </Row>
 
@@ -231,7 +242,7 @@ export default function MemberDetail() {
               key: 'nok',
               label: 'Next of Kin & Beneficiaries',
               children: (
-                <Row gutter={[16, 16]}>
+                <Row gutter={[20, 20]}>
                   <Col xs={24} lg={12}>
                     <Card size="small" title="Next of Kin" style={{ height: '100%' }}>
                       {member.nextOfKin.map((n, i) => (
@@ -266,7 +277,7 @@ export default function MemberDetail() {
               label: 'Statement',
               children: (
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <Row gutter={[16, 16]}>
+                  <Row gutter={[20, 20]}>
                     <Col xs={24} sm={8}>
                       <Card size="small">
                         <Statistic title="Total Deposits" value={fmtETB(txSummary.deposits)} valueStyle={{ color: '#0e7a5f' }} prefix={<DollarOutlined />} />

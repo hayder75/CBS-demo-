@@ -17,9 +17,12 @@ import {
 import { BankOutlined, DollarOutlined, PlusOutlined, WalletOutlined, WarningOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
 import { api } from '../api/client';
 import type { CashMovement, PettyCashEntry, Till } from '../types';
 import { fmtETB } from '../utils/format';
+import { colors } from '../theme';
 
 export default function CashOps() {
   const [tills, setTills] = useState<Till[]>([]);
@@ -83,42 +86,10 @@ export default function CashOps() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Teller Closing Balances</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#0e7a5f' }}>
-              <WalletOutlined /> {fmtETB(totalTill)}
-            </Typography.Title>
-          </Card>
-        </Col>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Vault Position</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0 }}>{fmtETB(924000)}</Typography.Title>
-          </Card>
-        </Col>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Open Petty Cash</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#fa8c16' }}>
-              <DollarOutlined /> {fmtETB(pettyTotal)}
-            </Typography.Title>
-          </Card>
-        </Col>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Teller Discrepancies</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: totalDiscrepancy > 0 ? '#f5222d' : '#52c41a' }}>
-              <WarningOutlined /> {fmtETB(totalDiscrepancy)}
-            </Typography.Title>
-          </Card>
-        </Col>
-      </Row>
-
-      <Card
-        title="Teller Tills"
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Cash Operations"
+        subtitle="Teller tills, vault position and cash movements"
         extra={
           <Space>
             <Button icon={<PlusOutlined />} onClick={() => setPettyOpen(true)}>
@@ -129,13 +100,50 @@ export default function CashOps() {
             </Button>
           </Space>
         }
-      >
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Teller Closing Balances"
+            value={fmtETB(totalTill)}
+            icon={<WalletOutlined style={{ color: colors.primary }} />}
+            caption="Across all tills"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Vault Position"
+            value={fmtETB(924000)}
+            icon={<BankOutlined style={{ color: colors.info }} />}
+            caption="Head office vault"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Open Petty Cash"
+            value={fmtETB(pettyTotal)}
+            icon={<DollarOutlined style={{ color: colors.accent }} />}
+            caption="Awaiting reimbursement"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Teller Discrepancies"
+            value={fmtETB(totalDiscrepancy)}
+            icon={<WarningOutlined style={{ color: totalDiscrepancy > 0 ? colors.danger : colors.success }} />}
+            caption="Absolute variance"
+          />
+        </Col>
+      </Row>
+
+      <Card title="Teller Tills">
         <Table
           rowKey="id"
           dataSource={tills}
           pagination={false}
           columns={[
-            { title: 'Teller', dataIndex: 'teller' },
+            { title: 'Teller', dataIndex: 'teller', ellipsis: true },
             { title: 'Opening', dataIndex: 'opening', align: 'right', render: (v) => fmtETB(v) },
             { title: 'Deposits', dataIndex: 'deposits', align: 'right', render: (v) => fmtETB(v) },
             { title: 'Withdrawals', dataIndex: 'withdrawals', align: 'right', render: (v) => fmtETB(v) },
@@ -158,7 +166,7 @@ export default function CashOps() {
         />
       </Card>
 
-      <Row gutter={[16, 16]}>
+      <Row gutter={[20, 20]}>
         <Col xs={24} lg={14}>
           <Card title="Cash Movements">
             <Table
@@ -167,9 +175,9 @@ export default function CashOps() {
               pagination={false}
               columns={[
                 { title: 'Date', dataIndex: 'date', width: 100 },
-                { title: 'Type', dataIndex: 'type' },
-                { title: 'From', dataIndex: 'from' },
-                { title: 'To', dataIndex: 'to' },
+                { title: 'Type', dataIndex: 'type', ellipsis: true },
+                { title: 'From', dataIndex: 'from', ellipsis: true },
+                { title: 'To', dataIndex: 'to', ellipsis: true },
                 { title: 'Amount', dataIndex: 'amount', align: 'right', render: (v) => fmtETB(v) },
                 { title: 'Initiated', dataIndex: 'initiatedBy', width: 120 },
                 {

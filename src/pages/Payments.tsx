@@ -15,12 +15,24 @@ import {
   Typography,
   message,
 } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, PlusOutlined, SwapOutlined, UndoOutlined } from '@ant-design/icons';
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  DollarOutlined,
+  PlusOutlined,
+  SwapOutlined,
+  TransactionOutlined,
+  UndoOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { PageHeader } from '../components/PageHeader';
+import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
 import type { Payment, PaymentMode, SavingsAccount } from '../types';
 import { fmtETB } from '../utils/format';
+import { colors } from '../theme';
 
 const statusTag = (s: string) => (
   <Tag color={s === 'Authorized' ? 'green' : s === 'Pending' ? 'gold' : s === 'Reversed' ? 'purple' : 'red'}>{s}</Tag>
@@ -138,28 +150,49 @@ export default function Payments() {
     </Modal>
   );
 
+  const authorizedCount = payments.filter((p) => p.status === 'Authorized').length;
+  const totalVolume = payments.reduce((s, p) => s + p.amount, 0);
+
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={8}>
-          <Card>
-            <Typography.Text type="secondary">Total Payments</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0 }}>{payments.length}</Typography.Title>
-          </Card>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Payments"
+        subtitle="Deposits, withdrawals, transfers and maker-checker authorization"
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Payments"
+            value={payments.length}
+            icon={<TransactionOutlined style={{ color: colors.primary }} />}
+            caption="All transactions posted"
+          />
         </Col>
-        <Col xs={24} md={8}>
-          <Card>
-            <Typography.Text type="secondary">Pending Authorization</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#faad14' }}>{pending.length}</Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Pending Authorization"
+            value={pending.length}
+            icon={<ClockCircleOutlined style={{ color: colors.accent }} />}
+            delta={pending.length ? 1.8 : undefined}
+            caption="Awaiting checker"
+          />
         </Col>
-        <Col xs={24} md={8}>
-          <Card>
-            <Typography.Text type="secondary">Volume (all)</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#0e7a5f' }}>
-              {fmtETB(payments.reduce((s, p) => s + p.amount, 0))}
-            </Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Authorized"
+            value={authorizedCount}
+            icon={<CheckCircleOutlined style={{ color: colors.success }} />}
+            caption="Cleared transactions"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Volume (all)"
+            value={fmtETB(totalVolume)}
+            icon={<DollarOutlined style={{ color: colors.info }} />}
+            caption="Processed value"
+          />
         </Col>
       </Row>
 
@@ -169,7 +202,7 @@ export default function Payments() {
             key: 'operations',
             label: 'Payment Operations',
             children: (
-              <Row gutter={[16, 16]}>
+              <Row gutter={[20, 20]}>
                 {[
                   { kind: 'DEPOSIT', name: 'Deposit', color: '#52c41a' },
                   { kind: 'WITHDRAWAL', name: 'Withdrawal', color: '#f5222d' },

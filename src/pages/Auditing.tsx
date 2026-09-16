@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import {
   Button,
   Card,
+  Col,
   Input,
   Modal,
+  Row,
   Space,
   Table,
   Tabs,
@@ -11,7 +13,15 @@ import {
   Typography,
   message,
 } from 'antd';
+import {
+  CheckCircleOutlined,
+  DollarOutlined,
+  FileSearchOutlined,
+  WarningOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { PageHeader } from '../components/PageHeader';
+import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
 import type { Member, SavingsTransaction } from '../types';
 import { fmtETB } from '../utils/format';
@@ -83,8 +93,61 @@ export default function Auditing() {
     },
   ];
 
+  const viewTotal = txns.reduce((s, t) => s + t.amount, 0);
+  const discrepant = txns.filter((t) => t.auditedStatus === 'Discrepant').length;
+  const audited = txns.filter((t) => t.auditedStatus === 'Audited').length;
+
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Auditing"
+        subtitle="Maker transaction verification and discrepancy follow-up"
+        extra={
+          <Space>
+            <Button icon={<FileSearchOutlined />}>Export Register</Button>
+            <Button type="primary" onClick={() => load(tab)}>
+              Refresh
+            </Button>
+          </Space>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Records in View"
+            value={txns.length}
+            icon={<FileSearchOutlined style={{ color: '#0e7a5f' }} />}
+            caption={tab}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Value in View"
+            value={fmtETB(viewTotal)}
+            icon={<DollarOutlined style={{ color: '#2e90fa' }} />}
+            caption="Transactions under review"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Audited"
+            value={audited}
+            icon={<CheckCircleOutlined style={{ color: '#12b76a' }} />}
+            delta={2.6}
+            caption="Marked as exact match"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Discrepant"
+            value={discrepant}
+            icon={<WarningOutlined style={{ color: '#f04438' }} />}
+            caption="Require follow-up notes"
+          />
+        </Col>
+      </Row>
+
       <Card title="Auditing / Verification">
         <Tabs
           activeKey={tab}

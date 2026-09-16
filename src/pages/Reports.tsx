@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Button, Card, Col, Row, Space, Table, Tag, Typography, message } from 'antd';
 import { BarChartOutlined, DownloadOutlined, FileTextOutlined, FundOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
 import { reportRows } from '../mocks/handlers';
 import { fmtETB } from '../utils/format';
 import { buildCsv, downloadCsv, type CsvRow } from '../utils/csv';
+import { colors } from '../theme';
 
 const reports = [
   { key: 'members', name: 'Member Registry', desc: 'Member records, status, shares, savings', icon: <FileTextOutlined /> },
@@ -26,9 +29,48 @@ export default function Reports() {
   const data = (reportRows as Record<string, unknown[]>)[active] ?? [];
   const headers = data.length ? Object.keys(data[0] as object) : [];
 
+  const activeReport = reports.find((r) => r.key === active);
+
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Row gutter={[16, 16]}>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Reports"
+        subtitle="Standard and statutory reports with CSV export"
+        extra={
+          <Button type="primary" icon={<DownloadOutlined />} onClick={download}>
+            Export CSV
+          </Button>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={8}>
+          <StatCard
+            title="Available Reports"
+            value={reports.length}
+            icon={<FileTextOutlined style={{ color: colors.primary }} />}
+            caption="Standard and statutory"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={8}>
+          <StatCard
+            title="Rows in Preview"
+            value={data.length}
+            icon={<FundOutlined style={{ color: colors.info }} />}
+            caption={activeReport?.name}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={8}>
+          <StatCard
+            title="Data Categories"
+            value={Object.keys(reportRows).length}
+            icon={<BarChartOutlined style={{ color: colors.success }} />}
+            caption="Combined sources"
+          />
+        </Col>
+      </Row>
+
+      <Row gutter={[20, 20]}>
         <Col xs={24} lg={8}>
           <Card title="Report Library">
             <Space direction="vertical" style={{ width: '100%' }} size={8}>
@@ -58,14 +100,7 @@ export default function Reports() {
           </Card>
         </Col>
         <Col xs={24} lg={16}>
-          <Card
-            title={`${reports.find((r) => r.key === active)?.name ?? ''} — Preview`}
-            extra={
-              <Button icon={<DownloadOutlined />} onClick={download}>
-                Export CSV
-              </Button>
-            }
-          >
+          <Card title={`${activeReport?.name ?? ''} — Preview`}>
             <Table
               size="small"
               rowKey={(_, i) => String(i)}
@@ -86,7 +121,7 @@ export default function Reports() {
           </Card>
         </Col>
       </Row>
-      <Card>
+      <Card title="Additional Reports">
         <Space wrap>
           <Tag color="blue">Trial Balance</Tag>
           <Tag color="blue">Balance Sheet</Tag>

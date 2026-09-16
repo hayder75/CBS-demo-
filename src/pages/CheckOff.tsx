@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Card, Col, Modal, Row, Select, Space, Table, Tag, Typography, message } from 'antd';
-import { CloudUploadOutlined, DiffOutlined, SwapOutlined } from '@ant-design/icons';
+import {
+  CloudUploadOutlined,
+  DiffOutlined,
+  ExclamationCircleOutlined,
+  SwapOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
+import { colors } from '../theme';
 import { api } from '../api/client';
 import type { CheckOffBatch } from '../types';
 import { fmtETB } from '../utils/format';
@@ -37,32 +45,51 @@ export default function CheckOff() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={8}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Expected Deductions (Aug)</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0 }}>
-              <SwapOutlined /> {fmtETB(totals.expected)}
-            </Typography.Title>
-          </Card>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Check-Off"
+        subtitle="Employer deduction batches, reconciliation and allocation priority"
+        extra={
+          <Button type="primary" icon={<CloudUploadOutlined />} onClick={() => setUploadOpen(true)}>
+            Upload Deduction File
+          </Button>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Expected Deductions (Aug)"
+            value={fmtETB(totals.expected)}
+            icon={<SwapOutlined style={{ color: colors.info }} />}
+            caption={`${batches.length} employer batches`}
+          />
         </Col>
-        <Col xs={24} md={8}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Received</Typography.Text>
-            <Typography.Title level={3} style={{ color: '#52c41a', margin: 0 }}>
-              {fmtETB(totals.received)}
-            </Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Received"
+            value={fmtETB(totals.received)}
+            icon={<CloudUploadOutlined style={{ color: colors.success }} />}
+            delta={1.8}
+            caption="Remitted by employers"
+          />
         </Col>
-        <Col xs={24} md={8}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Variance</Typography.Text>
-            <Typography.Title level={3} style={{ color: totals.variance < 0 ? '#f5222d' : '#52c41a', margin: 0 }}>
-              <DiffOutlined /> {fmtETB(totals.variance)}
-            </Typography.Title>
-            <Typography.Text type="secondary">{totals.unmatched} unmatched employee rows</Typography.Text>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Variance"
+            value={fmtETB(totals.variance)}
+            icon={<DiffOutlined style={{ color: totals.variance < 0 ? colors.danger : colors.success }} />}
+            delta={totals.variance < 0 ? -2.4 : 2.4}
+            caption="Expected vs received"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Unmatched Rows"
+            value={totals.unmatched}
+            icon={<ExclamationCircleOutlined style={{ color: colors.warning }} />}
+            caption="Employee rows pending match"
+          />
         </Col>
       </Row>
 
@@ -75,20 +102,13 @@ export default function CheckOff() {
         />
       )}
 
-      <Card
-        title="Employer Check-Off Batches"
-        extra={
-          <Button type="primary" icon={<CloudUploadOutlined />} onClick={() => setUploadOpen(true)}>
-            Upload Deduction File
-          </Button>
-        }
-      >
+      <Card title="Employer Check-Off Batches">
         <Table
           rowKey="id"
           dataSource={batches}
           pagination={false}
           columns={[
-            { title: 'Employer', dataIndex: 'employer' },
+            { title: 'Employer', dataIndex: 'employer', ellipsis: true },
             { title: 'Month', dataIndex: 'month', width: 100 },
             { title: 'Uploaded', dataIndex: 'uploadedAt', width: 110 },
             { title: 'Rows', dataIndex: 'rows', width: 70, align: 'right' },

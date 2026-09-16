@@ -21,17 +21,22 @@ import {
   message,
 } from 'antd';
 import {
+  DollarOutlined,
   FileProtectOutlined,
   PaperClipOutlined,
   PlusOutlined,
   SafetyCertificateOutlined,
   UploadOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
 import { api } from '../api/client';
 import type { Collateral, Member } from '../types';
 import { fmtETB, fmtDate } from '../utils/format';
+import { colors } from '../theme';
 
 const statusColor: Record<Collateral['status'], string> = {
   Pledged: 'blue',
@@ -112,7 +117,7 @@ export default function Collateral() {
   );
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
       {expired.length > 0 && (
         <Alert
           type="warning"
@@ -122,36 +127,52 @@ export default function Collateral() {
         />
       )}
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Pledged</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#1890ff' }}>{totals.pledged}</Typography.Title>
-          </Card>
+      <PageHeader
+        title="Collateral"
+        subtitle="Registered assets, valuations and insurance status"
+        extra={
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>
+            Add Collateral
+          </Button>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Pledged"
+            value={totals.pledged}
+            icon={<FileProtectOutlined style={{ color: colors.primary }} />}
+            caption="Active liens"
+          />
         </Col>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Pending Release</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#faad14' }}>{totals.pendingRelease}</Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Pending Release"
+            value={totals.pendingRelease}
+            icon={<SafetyCertificateOutlined style={{ color: colors.accent }} />}
+            caption="Awaiting approval"
+          />
         </Col>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Total Valuation</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-              <FileProtectOutlined /> {fmtETB(totals.valuation)}
-            </Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Valuation"
+            value={fmtETB(totals.valuation)}
+            icon={<DollarOutlined style={{ color: colors.info }} />}
+            caption="Gross asset value"
+          />
         </Col>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Forced Sale Value</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0 }}>{fmtETB(totals.fsv)}</Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Forced Sale Value"
+            value={fmtETB(totals.fsv)}
+            icon={<WarningOutlined style={{ color: colors.success }} />}
+            caption="After haircut"
+          />
         </Col>
       </Row>
 
-      <Card title="Collateral Registry" extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>Add Collateral</Button>}>
+      <Card title="Collateral Registry">
         <Table
           rowKey="id"
           dataSource={items}
@@ -159,11 +180,11 @@ export default function Collateral() {
           pagination={false}
           columns={[
             { title: 'Code', dataIndex: 'code', width: 100 },
-            { title: 'Type', dataIndex: 'type' },
-            { title: 'Owner', dataIndex: 'owner' },
+            { title: 'Type', dataIndex: 'type', ellipsis: true },
+            { title: 'Owner', dataIndex: 'owner', ellipsis: true },
             { title: 'Document No', dataIndex: 'documentNo', width: 140, render: (v) => v ?? '—' },
             { title: 'Description', dataIndex: 'description', ellipsis: true },
-            { title: 'Linked Loan', dataIndex: 'loanRef', width: 110 },
+            { title: 'Linked Loan', dataIndex: 'loanRef', width: 110, render: (v) => v ?? '—' },
             { title: 'Valuation', dataIndex: 'valuation', align: 'right', render: (v) => fmtETB(v) },
             { title: 'FSV', dataIndex: 'forcedSaleValue', align: 'right', render: (v) => fmtETB(v) },
             {

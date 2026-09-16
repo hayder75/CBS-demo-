@@ -26,6 +26,9 @@ import {
   RiseOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
+import { colors } from '../theme';
 import { api } from '../api/client';
 import type { GLAccount, JournalEntry } from '../types';
 import { fmtETB } from '../utils/format';
@@ -117,39 +120,54 @@ export default function Accounting() {
     .map((a) => ({ ...a, amount: Math.abs(a.balance) }));
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Total Assets</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#1890ff' }}>
-              <BankOutlined /> {fmtETB(totals.assets)}
-            </Typography.Title>
-          </Card>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Accounting"
+        subtitle="General ledger, trial balance and financial statements"
+        extra={
+          <Space>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setEntryOpen(true)}>
+              New Journal Entry
+            </Button>
+          </Space>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Total Assets"
+            value={fmtETB(totals.assets)}
+            icon={<BankOutlined style={{ color: colors.info }} />}
+            delta={3.6}
+            caption="Compared to last closing"
+          />
         </Col>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Liabilities</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-              {fmtETB(totals.liabilities)}
-            </Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Liabilities"
+            value={fmtETB(totals.liabilities)}
+            icon={<CalculatorOutlined style={{ color: colors.accent }} />}
+            delta={2.1}
+            caption="Member deposits & borrowings"
+          />
         </Col>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Equity & Reserves</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#722ed1' }}>
-              {fmtETB(totals.equity)}
-            </Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Equity & Reserves"
+            value={fmtETB(totals.equity)}
+            icon={<BankOutlined style={{ color: '#7a5af8' }} />}
+            caption="Capital and retained earnings"
+          />
         </Col>
-        <Col xs={24} md={6}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Surplus (Income − Expense)</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0, color: '#0e7a5f' }}>
-              <RiseOutlined /> {fmtETB(totals.surplus)}
-            </Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Surplus (Income − Expense)"
+            value={fmtETB(totals.surplus)}
+            icon={<RiseOutlined style={{ color: colors.primary }} />}
+            delta={totals.surplus >= 0 ? 6.1 : -4.0}
+            caption={`Income ${fmtETB(totals.income)}`}
+          />
         </Col>
       </Row>
 
@@ -160,20 +178,15 @@ export default function Accounting() {
           </Space>
         }
         extra={
-          <Space>
-            <Segmented
-              value={view}
-              onChange={(v) => setView(v as typeof view)}
-              options={[
-                { label: 'Trial Balance', value: 'trial' },
-                { label: 'Balance Sheet', value: 'bs' },
-                { label: 'Income Statement', value: 'is' },
-              ]}
-            />
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setEntryOpen(true)}>
-              New Journal Entry
-            </Button>
-          </Space>
+          <Segmented
+            value={view}
+            onChange={(v) => setView(v as typeof view)}
+            options={[
+              { label: 'Trial Balance', value: 'trial' },
+              { label: 'Balance Sheet', value: 'bs' },
+              { label: 'Income Statement', value: 'is' },
+            ]}
+          />
         }
       >
         {view === 'trial' && (
@@ -251,7 +264,7 @@ export default function Accounting() {
                 { title: 'Code', dataIndex: 'code', width: 80 },
                 { title: 'Account', dataIndex: 'name' },
                 { title: 'Category', dataIndex: 'category', render: (c) => <Tag color={categoryColor[c as GLAccount["category"]]}>{String(c)}</Tag> },
-                { title: 'Amount', dataIndex: 'amount', align: 'right', render: (v, r) => (r.category === 'Income' ? <span style={{ color: '#52c41a' }}>{fmtETB(v)}</span> : <span style={{ color: '#f5222d' }}>{fmtETB(v)}</span>) },
+                { title: 'Amount', dataIndex: 'amount', align: 'right', render: (v, r) => (r.category === 'Income' ? <span style={{ color: colors.success }}>{fmtETB(v)}</span> : <span style={{ color: colors.danger }}>{fmtETB(v)}</span>) },
               ]}
             />
             <Row style={{ marginTop: 12 }} justify="end">

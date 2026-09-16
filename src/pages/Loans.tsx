@@ -31,6 +31,9 @@ import {
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
+import { StatCard } from '../components/StatCard';
+import { PageHeader } from '../components/PageHeader';
+import { colors } from '../theme';
 import { api } from '../api/client';
 import type { Collateral, Loan, LoanProduct, LoanScheduleRow, Member, SavingsAccount } from '../types';
 import { fmtETB } from '../utils/format';
@@ -156,52 +159,67 @@ export default function Loans() {
   );
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={8}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Outstanding Portfolio</Typography.Text>
-            <Typography.Title level={3} style={{ margin: 0 }}>
-              <WalletOutlined /> {fmtETB(portfolio.outstanding)}
-            </Typography.Title>
-          </Card>
+    <ProCard ghost direction="column" gutter={[20, 20]}>
+      <PageHeader
+        title="Loans"
+        subtitle="Loan portfolio, appraisal pipeline and portfolio-at-risk monitoring"
+        extra={
+          <Space>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setApplyOpen(true)}>
+              New Loan Application
+            </Button>
+          </Space>
+        }
+      />
+
+      <Row gutter={[20, 20]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Outstanding Portfolio"
+            value={fmtETB(portfolio.outstanding)}
+            icon={<WalletOutlined style={{ color: colors.primary }} />}
+            delta={4.2}
+            caption={`${fmtETB(portfolio.disbursed)} disbursed to date`}
+          />
         </Col>
-        <Col xs={24} md={8}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Overdue Loans</Typography.Text>
-            <Typography.Title level={3} style={{ color: '#f5222d', margin: 0 }}>
-              <ExclamationCircleOutlined /> {portfolio.overdue.length} loans
-            </Typography.Title>
-            <Typography.Text type="secondary">PAR &gt; 30d: {fmtETB(portfolio.par)}</Typography.Text>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Overdue Loans"
+            value={`${portfolio.overdue.length} loans`}
+            icon={<ExclamationCircleOutlined style={{ color: colors.danger }} />}
+            delta={-1.3}
+            caption={`PAR > 30d: ${fmtETB(portfolio.par)}`}
+          />
         </Col>
-        <Col xs={24} md={8}>
-          <Card className="stat-card">
-            <Typography.Text type="secondary">Loans in Pipeline</Typography.Text>
-            <Typography.Title level={3} style={{ color: '#1890ff', margin: 0 }}>
-              <ClockCircleOutlined />{' '}
-              {loans.filter((l) => ['Pending', 'Under Appraisal', 'Approved'].includes(l.status)).length}
-            </Typography.Title>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Loans in Pipeline"
+            value={loans.filter((l) => ['Pending', 'Under Appraisal', 'Approved'].includes(l.status)).length}
+            icon={<ClockCircleOutlined style={{ color: colors.info }} />}
+            caption="Pending, appraisal and approved"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatCard
+            title="Active Loans"
+            value={loans.filter((l) => l.status === 'Disbursed' || l.status === 'Partially Paid').length}
+            icon={<CheckCircleOutlined style={{ color: colors.success }} />}
+            caption={`${loans.length} total applications`}
+          />
         </Col>
       </Row>
 
       <Card
         title="Loan Portfolio"
         extra={
-          <Space>
-            <Select
-              placeholder="Status"
-              allowClear
-              style={{ width: 170 }}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={['Pending', 'Under Appraisal', 'Approved', 'Disbursed', 'Partially Paid', 'Restructured'].map((s) => ({ label: s, value: s }))}
-            />
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setApplyOpen(true)}>
-              New Loan Application
-            </Button>
-          </Space>
+          <Select
+            placeholder="Status"
+            allowClear
+            style={{ width: 170 }}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={['Pending', 'Under Appraisal', 'Approved', 'Disbursed', 'Partially Paid', 'Restructured'].map((s) => ({ label: s, value: s }))}
+          />
         }
       >
         <Table
@@ -211,8 +229,8 @@ export default function Loans() {
           pagination={{ pageSize: 10, showSizeChanger: false }}
           columns={[
             { title: 'Loan No', dataIndex: 'loanNo', width: 110 },
-            { title: 'Member', dataIndex: 'memberName' },
-            { title: 'Product', dataIndex: 'productName' },
+            { title: 'Member', dataIndex: 'memberName', ellipsis: true },
+            { title: 'Product', dataIndex: 'productName', ellipsis: true },
             { title: 'Status', dataIndex: 'status', render: (s) => <Tag color={statusColor[s as Loan["status"]]}>{String(s)}</Tag> },
             {
               title: 'Amount',
@@ -249,7 +267,7 @@ export default function Loans() {
                       type="circle"
                       size={28}
                       percent={v}
-                      strokeColor={v >= 70 ? '#52c41a' : v >= 45 ? '#faad14' : '#f5222d'}
+                      strokeColor={v >= 70 ? colors.success : v >= 45 ? colors.warning : colors.danger}
                     />
                     <Typography.Text type="secondary" style={{ fontSize: 11 }}>
                       PD {selected === undefined ? '' : ''}
@@ -307,7 +325,7 @@ export default function Loans() {
                       <Progress
                         type="dashboard"
                         percent={selected.aiScore}
-                        strokeColor={selected.aiScore >= 70 ? '#52c41a' : selected.aiScore >= 45 ? '#faad14' : '#f5222d'}
+                        strokeColor={selected.aiScore >= 70 ? colors.success : selected.aiScore >= 45 ? colors.warning : colors.danger}
                         format={(p) => `${p}/100`}
                       />
                     </Col>
