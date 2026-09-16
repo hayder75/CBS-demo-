@@ -6,7 +6,6 @@ import {
   DatePicker,
   Form,
   Input,
-  InputNumber,
   Modal,
   Row,
   Segmented,
@@ -18,6 +17,7 @@ import {
   message,
 } from 'antd';
 import dayjs from 'dayjs';
+import { CurrencyInput } from '../components/CurrencyInput';
 import {
   BankOutlined,
   CalculatorOutlined,
@@ -327,7 +327,7 @@ export default function Accounting() {
               </Col>
               <Col span={8}>
                 <Form.Item label="Debit Amount" name="debit" rules={[{ required: true }]}>
-                  <InputNumber style={{ width: '100%' }} min={1} step={100} />
+                  <CurrencyInput style={{ width: '100%' }} min={1} step={100} />
                 </Form.Item>
               </Col>
             </Row>
@@ -345,7 +345,7 @@ export default function Accounting() {
               </Col>
               <Col span={8}>
                 <Form.Item label="Credit Amount" name="credit" rules={[{ required: true }]}>
-                  <InputNumber style={{ width: '100%' }} min={1} step={100} />
+                  <CurrencyInput style={{ width: '100%' }} min={1} step={100} />
                 </Form.Item>
               </Col>
             </Row>

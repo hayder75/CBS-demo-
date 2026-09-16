@@ -6,6 +6,7 @@ import { ConfigProvider } from 'antd';
 
 import { setupServer } from 'msw/node';
 import { handlers } from '../mocks/handlers';
+import { MembersProvider } from '../context/MembersContext';
 
 import Dashboard from './Dashboard';
 import Members from './Members';
@@ -46,7 +47,9 @@ function renderToBody(el: React.ReactNode): HTMLElement {
   act(() => {
     root.render(
       <ConfigProvider>
-        <MemoryRouter>{el}</MemoryRouter>
+        <MemoryRouter>
+          <MembersProvider>{el}</MembersProvider>
+        </MemoryRouter>
       </ConfigProvider>,
     );
   });

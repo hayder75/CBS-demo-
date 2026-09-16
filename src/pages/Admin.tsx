@@ -5,7 +5,6 @@ import {
   Col,
   Form,
   Input,
-  InputNumber,
   Modal,
   Row,
   Select,
@@ -18,6 +17,7 @@ import {
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
 import type { AuditLogEntry, Branch, TransactionLimit } from '../types';
 import { fmtETB } from '../utils/format';
@@ -167,7 +167,7 @@ export default function Admin() {
             </Col>
             <Col span={24}>
               <Form.Item label="Max Amount (ETB)" name="maxAmount" rules={[{ required: true }]}>
-                <InputNumber style={{ width: '100%' }} min={0} step={1000} />
+                <CurrencyInput style={{ width: '100%' }} min={0} step={1000} />
               </Form.Item>
             </Col>
           </Row>

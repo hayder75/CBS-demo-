@@ -17,6 +17,7 @@ import {
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
 import type { FixedAsset, GLAccount, GlClass } from '../types';
 import { fmtETB } from '../utils/format';
@@ -160,7 +161,7 @@ export default function Finance() {
                   columns={[
                     { title: 'Code', dataIndex: 'code', width: 90 },
                     { title: 'Account', dataIndex: 'name' },
-                    { title: 'Class', dataIndex: 'classId', width: 80 },
+                    { title: 'Class', dataIndex: 'classId', width: 100, render: (v) => classes.find((c) => String(c.id) === String(v))?.name ?? String(v) },
                     { title: 'Side', dataIndex: 'side', width: 80 },
                     { title: 'Category', dataIndex: 'category', render: (c: string) => <Tag color={catColor[c]}>{c}</Tag> },
                     { title: 'Balance', dataIndex: 'balance', align: 'right' as const, render: (v: number) => fmtETB(v) },
@@ -238,7 +239,7 @@ export default function Finance() {
           <Row gutter={16}>
             <Col span={12}><Form.Item label="Code" name="code" rules={[{ required: true }]}><Input /></Form.Item></Col>
             <Col span={12}><Form.Item label="Name" name="name" rules={[{ required: true }]}><Input /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Value (ETB)" name="value" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Value (ETB)" name="value" rules={[{ required: true }]}><CurrencyInput style={{ width: '100%' }} min={0} /></Form.Item></Col>
             <Col span={12}><Form.Item label="Depreciation Rate %" name="depreciationRate" initialValue={0}><InputNumber style={{ width: '100%' }} min={0} step={0.5} /></Form.Item></Col>
             <Col span={12}><Form.Item label="DPR Link" name="dprLink"><Input /></Form.Item></Col>
             <Col span={12}><Form.Item label="GL Link" name="glLink"><Input /></Form.Item></Col>

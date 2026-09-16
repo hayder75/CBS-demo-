@@ -5,7 +5,6 @@ import {
   Col,
   Form,
   Input,
-  InputNumber,
   Modal,
   Row,
   Select,
@@ -18,6 +17,7 @@ import {
 } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, PlusOutlined, SwapOutlined, UndoOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
 import type { Payment, PaymentMode, SavingsAccount } from '../types';
 import { fmtETB } from '../utils/format';
@@ -35,6 +35,9 @@ export default function Payments() {
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+
+  const accountOf = (v: string) => accounts.find((a) => String(a.id) === String(v))?.accountNo ?? String(v);
+  const modeOf = (v: string) => modes.find((m) => String(m.id) === String(v))?.name ?? String(v);
 
   const load = async () => {
     setPayments(await api<Payment[]>('/api/payments').catch(() => []));
@@ -74,11 +77,11 @@ export default function Payments() {
   const paymentCols = [
     { title: 'No', dataIndex: 'paymentNo', width: 120 },
     { title: 'Kind', dataIndex: 'kind', width: 130, render: kindTag },
-    { title: 'Account', dataIndex: 'accountId', width: 110 },
+    { title: 'Account', dataIndex: 'accountId', width: 140, render: accountOf },
     { title: 'From', dataIndex: 'fromRef' },
     { title: 'To', dataIndex: 'toRef', ellipsis: true },
     { title: 'Amount', dataIndex: 'amount', align: 'right' as const, render: (v: number) => fmtETB(v) },
-    { title: 'Mode', dataIndex: 'paymentModeId', width: 90 },
+    { title: 'Mode', dataIndex: 'paymentModeId', width: 110, render: modeOf },
     { title: 'Maker', dataIndex: 'createdBy', width: 120 },
     { title: 'Status', dataIndex: 'status', width: 110, render: statusTag },
   ];
@@ -96,7 +99,7 @@ export default function Payments() {
 
   const amountField = (
     <Form.Item label="Amount (ETB)" name="amount" rules={[{ required: true, message: 'Amount required' }]}>
-      <InputNumber style={{ width: '100%' }} min={1} step={100} />
+      <CurrencyInput style={{ width: '100%' }} min={1} step={100} />
     </Form.Item>
   );
 
@@ -239,7 +242,7 @@ export default function Payments() {
                   columns={[
                     { title: 'No', dataIndex: 'paymentNo', width: 120 },
                     { title: 'Kind', dataIndex: 'kind', width: 130, render: kindTag },
-                    { title: 'Account', dataIndex: 'accountId', width: 110 },
+                    { title: 'Account', dataIndex: 'accountId', width: 140, render: accountOf },
                     { title: 'From', dataIndex: 'fromRef' },
                     { title: 'To', dataIndex: 'toRef' },
                     { title: 'Amount', dataIndex: 'amount', align: 'right' as const, render: (v: number) => fmtETB(v) },
@@ -271,7 +274,7 @@ export default function Payments() {
                   columns={[
                     { title: 'No', dataIndex: 'paymentNo', width: 120 },
                     { title: 'Kind', dataIndex: 'kind', width: 130 },
-                    { title: 'Account', dataIndex: 'accountId', width: 110 },
+                    { title: 'Account', dataIndex: 'accountId', width: 140, render: accountOf },
                     { title: 'Amount', dataIndex: 'amount', align: 'right' as const, render: (v: number) => fmtETB(v) },
                     { title: 'Authorized', dataIndex: 'authorizedBy', width: 120 },
                     {
@@ -328,7 +331,7 @@ export default function Payments() {
       <Modal title="Branch Claim" open={open === 'BRANCH_CLAIM'} onCancel={() => setOpen(null)} onOk={() => submit('BRANCH_CLAIM')} okText="Submit Claim" confirmLoading={saving}>
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Space direction="vertical" style={{ width: '100%' }} size={12}>
-            <Form.Item label="Amount (ETB)" name="amount" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={1} /></Form.Item>
+            <Form.Item label="Amount (ETB)" name="amount" rules={[{ required: true }]}><CurrencyInput style={{ width: '100%' }} min={1} /></Form.Item>
             <Form.Item label="Other Branch GL / Home Branch GL" name="description"><Input placeholder="e.g. credit other branch claim (dr self)" /></Form.Item>
           </Space>
         </Form>

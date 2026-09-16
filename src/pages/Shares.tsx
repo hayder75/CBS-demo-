@@ -17,6 +17,7 @@ import {
 } from 'antd';
 import { FundOutlined, PercentageOutlined, SwapOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
 import type { DividendRun, Member, ShareTransfer } from '../types';
 import { fmtETB, fmtNum } from '../utils/format';
@@ -175,7 +176,7 @@ export default function Shares() {
             </Col>
             <Col span={12}>
               <Form.Item label="Value (ETB)" name="value">
-                <InputNumber style={{ width: '100%' }} min={0} step={1000} />
+                <CurrencyInput style={{ width: '100%' }} min={0} step={1000} />
               </Form.Item>
             </Col>
           </Row>

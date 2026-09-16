@@ -24,6 +24,7 @@ import {
   SaveOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
 import type { Member, SavingsProduct, SavingsTransaction } from '../types';
 import { fmtETB } from '../utils/format';
@@ -271,7 +272,10 @@ export default function Savings() {
             {
               title: 'Product',
               dataIndex: 'productId',
-              render: (v) => products.find((p) => String(p.id) === String(v))?.code ?? String(v),
+              render: (v) => {
+                const p = products.find((x) => String(x.id) === String(v));
+                return p ? `${p.name}` : String(v);
+              },
             },
             { title: 'Type', dataIndex: 'type', render: (t) => <Tag color={typeColor[t as SavingsTransaction["type"]]}>{String(t)}</Tag> },
             { title: 'Channel', dataIndex: 'channel' },
@@ -313,7 +317,7 @@ export default function Savings() {
             </Col>
             <Col span={12}>
               <Form.Item label="Minimum Balance (ETB)" name="minBalance" initialValue={0}>
-                <InputNumber style={{ width: '100%' }} min={0} step={100} />
+                <CurrencyInput style={{ width: '100%' }} min={0} step={100} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -348,7 +352,7 @@ export default function Savings() {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Amount (ETB)" name="amount" rules={[{ required: true, message: 'Amount required' }]}>
-                <InputNumber style={{ width: '100%' }} min={1} step={100} />
+                <CurrencyInput style={{ width: '100%' }} min={1} step={100} />
               </Form.Item>
             </Col>
             <Col span={12}>

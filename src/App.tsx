@@ -2,9 +2,11 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuth } from './context/AuthContext';
 import AppLayout from './layout/AppLayout';
+import { MembersProvider } from './context/MembersContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
+import MemberDetail from './pages/MemberDetail';
 import Savings from './pages/Savings';
 import Loans from './pages/Loans';
 import Accounting from './pages/Accounting';
@@ -37,36 +39,39 @@ function Protected({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/"
-        element={
-          <Protected>
-            <AppLayout />
-          </Protected>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="members" element={<Members />} />
-        <Route path="savings" element={<Savings />} />
-        <Route path="loans" element={<Loans />} />
-        <Route path="accounting" element={<Accounting />} />
-        <Route path="checkoff" element={<CheckOff />} />
-        <Route path="collateral" element={<Collateral />} />
-        <Route path="shares" element={<Shares />} />
-        <Route path="cashops" element={<CashOps />} />
-        <Route path="reports" element={<Reports />} />
-        <Route path="approvals" element={<Approvals />} />
-        <Route path="products" element={<Products />} />
-        <Route path="registration" element={<Registration />} />
-        <Route path="payments" element={<Payments />} />
-        <Route path="admin" element={<Admin />} />
-        <Route path="auditing" element={<Auditing />} />
-        <Route path="finance" element={<Finance />} />
-        <Route path="data-migration" element={<DataMigration />} />
-        <Route path="loan-admin" element={<LoanAdmin />} />
-      </Route>
-    </Routes>
+    <MembersProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/"
+          element={
+            <Protected>
+              <AppLayout />
+            </Protected>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="members" element={<Members />} />
+          <Route path="members/:id" element={<MemberDetail />} />
+          <Route path="savings" element={<Savings />} />
+          <Route path="loans" element={<Loans />} />
+          <Route path="accounting" element={<Accounting />} />
+          <Route path="checkoff" element={<CheckOff />} />
+          <Route path="collateral" element={<Collateral />} />
+          <Route path="shares" element={<Shares />} />
+          <Route path="cashops" element={<CashOps />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="approvals" element={<Approvals />} />
+          <Route path="products" element={<Products />} />
+          <Route path="registration" element={<Registration />} />
+          <Route path="payments" element={<Payments />} />
+          <Route path="admin" element={<Admin />} />
+          <Route path="auditing" element={<Auditing />} />
+          <Route path="finance" element={<Finance />} />
+          <Route path="data-migration" element={<DataMigration />} />
+          <Route path="loan-admin" element={<LoanAdmin />} />
+        </Route>
+      </Routes>
+    </MembersProvider>
   );
 }

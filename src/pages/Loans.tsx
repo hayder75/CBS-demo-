@@ -30,8 +30,9 @@ import {
   WalletOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
-import type { Loan, LoanProduct, LoanScheduleRow } from '../types';
+import type { Collateral, Loan, LoanProduct, LoanScheduleRow, Member, SavingsAccount } from '../types';
 import { fmtETB } from '../utils/format';
 
 const statusColor: Record<Loan['status'], string> = {
@@ -56,6 +57,9 @@ const classifyColor: Record<string, string> = {
 export default function Loans() {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [products, setProducts] = useState<LoanProduct[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [memberAccounts, setMemberAccounts] = useState<SavingsAccount[]>([]);
+  const [collaterals, setCollaterals] = useState<Collateral[]>([]);
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [selected, setSelected] = useState<Loan | null>(null);
   const [applyOpen, setApplyOpen] = useState(false);
@@ -67,6 +71,8 @@ export default function Loans() {
   useEffect(() => {
     api<Loan[]>('/api/loans').then(setLoans);
     api<LoanProduct[]>('/api/loans/products').then(setProducts);
+    api<Member[]>('/api/members').then(setMembers);
+    api<Collateral[]>('/api/collateral').then(setCollaterals);
   }, []);
 
   const viewSchedule = async (loan: Loan) => {
@@ -123,6 +129,31 @@ export default function Loans() {
     const fresh = await api<Loan[]>('/api/loans');
     setLoans(fresh);
   };
+
+  const onMemberChange = async (memberId?: string) => {
+    form.setFieldsValue({
+      repaymentAccountId: undefined,
+      reserveAccountId: undefined,
+      collateralIds: undefined,
+    });
+    if (!memberId) {
+      setMemberAccounts([]);
+      return;
+    }
+    const accounts = await api<SavingsAccount[]>(`/api/accounts/member/${memberId}`).catch(() => []);
+    setMemberAccounts(accounts);
+  };
+
+  const watchedMemberId = Form.useWatch('memberId', form);
+  const memberCollaterals = useMemo(
+    () => {
+      const selectedMember = members.find((m) => m.id === watchedMemberId);
+      return selectedMember
+        ? collaterals.filter((c) => c.owner === selectedMember.fullName && c.status !== 'Released')
+        : [];
+    },
+    [collaterals, members, watchedMemberId],
+  );
 
   return (
     <ProCard ghost direction="column" gutter={[16, 16]}>
@@ -311,6 +342,26 @@ export default function Loans() {
               ))}
             </Descriptions>
 
+            <Descriptions bordered size="small" column={1} title="Collateral">
+              {(!selected.collateralIds || selected.collateralIds.length === 0) && (
+                <Descriptions.Item>No collateral linked</Descriptions.Item>
+              )}
+              {(selected.collateralIds ?? []).map((cid) => {
+                const c = collaterals.find((x) => x.id === cid);
+                return c ? (
+                  <Descriptions.Item label={c.code} key={cid}>
+                    <Space direction="vertical" size={4}>
+                      <span>
+                        {c.type} — {c.owner}
+                      </span>
+                      <Tag color={c.status === 'Pledged' ? 'blue' : 'default'}>{c.status}</Tag>
+                      <span>FSV {fmtETB(c.forcedSaleValue)} · Doc {c.documentNo ?? '—'}</span>
+                    </Space>
+                  </Descriptions.Item>
+                ) : null;
+              })}
+            </Descriptions>
+
             <Space wrap>
               {selected.status === 'Pending' && (
                 <Button type="primary" icon={<SafetyCertificateOutlined />} onClick={() => setDecisionOpen(true)}>
@@ -378,6 +429,15 @@ export default function Loans() {
         okText="Submit for Appraisal"
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item label="Member" name="memberId" rules={[{ required: true, message: 'Member required' }]}>
+            <Select
+              showSearch
+              optionFilterProp="label"
+              placeholder="Select member"
+              onChange={onMemberChange}
+              options={members.map((m) => ({ label: `${m.fullName} (${m.memberNo})`, value: m.id }))}
+            />
+          </Form.Item>
           <Form.Item label="Loan Product" name="productId" rules={[{ required: true }]}>
             <Select
               placeholder="Select product"
@@ -387,8 +447,38 @@ export default function Loans() {
               }))}
             />
           </Form.Item>
+          <Form.Item label="Repayment Account" name="repaymentAccountId" rules={[{ required: true, message: 'Repayment account required' }]}>
+            <Select
+              placeholder="Select savings account"
+              disabled={!memberAccounts.length}
+              options={memberAccounts
+                .filter((a) => a.status === 'Active')
+                .map((a) => ({ label: `${a.accountNo} — balance ${fmtETB(a.balance)}`, value: Number(a.id) }))}
+            />
+          </Form.Item>
+          <Form.Item label="Reserve Account (optional)" name="reserveAccountId">
+            <Select
+              placeholder="Select savings account"
+              disabled={!memberAccounts.length}
+              options={memberAccounts
+                .filter((a) => a.status === 'Active')
+                .map((a) => ({ label: `${a.accountNo} — balance ${fmtETB(a.balance)}`, value: Number(a.id) }))}
+            />
+          </Form.Item>
+          <Form.Item label="Collateral" name="collateralIds">
+            <Select
+              mode="multiple"
+              allowClear
+              placeholder="Select collateral registered by this member"
+              disabled={!memberCollaterals.length}
+              options={memberCollaterals.map((c) => ({
+                label: `${c.code} — ${c.type} (${fmtETB(c.forcedSaleValue)})`,
+                value: c.id,
+              }))}
+            />
+          </Form.Item>
           <Form.Item label="Amount (ETB)" name="amount" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} min={1000} step={1000} />
+            <CurrencyInput style={{ width: '100%' }} min={1000} step={1000} />
           </Form.Item>
           <Form.Item label="Term (months)" name="termMonths" rules={[{ required: true }]}>
             <InputNumber style={{ width: '100%' }} min={3} max={60} step={3} />

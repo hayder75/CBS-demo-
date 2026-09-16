@@ -271,6 +271,11 @@ export const handlers = [
       code: `COL-${String(collateral.length + 1).padStart(3, '0')}`,
       type: String(body.type ?? 'Property Title Deed'),
       owner: String(body.owner ?? ''),
+      documentNo: body.documentNo ? String(body.documentNo) : undefined,
+      documentAttachment: body.documentAttachment ? String(body.documentAttachment) : undefined,
+      registrationDate: body.registrationDate ? String(body.registrationDate) : undefined,
+      custodian: body.custodian ? String(body.custodian) : undefined,
+      insuranceCompany: body.insuranceCompany ? String(body.insuranceCompany) : undefined,
       description: String(body.description ?? ''),
       valuation,
       forcedSaleValue: Math.round(valuation * (1 - discount / 100)),
@@ -278,6 +283,7 @@ export const handlers = [
       loanId: undefined,
       loanRef: body.loanRef ? String(body.loanRef) : undefined,
       insuranceExpiry: body.insuranceExpiry ? String(body.insuranceExpiry) : undefined,
+      notes: body.notes ? String(body.notes) : undefined,
       status: 'Pledged',
     } as Collateral;
     collateral.unshift(item);
@@ -363,11 +369,12 @@ export const handlers = [
   http.post('/api/loans', async ({ request }) => {
     await delay(800);
     const body = (await request.json()) as Partial<Loan>;
+    const member = members.find((m) => m.id === body.memberId);
     const newLoan: Loan = {
       id: `l-${Date.now()}`,
       loanNo: `LN-2026-0${60 + Math.floor(Math.random() * 40)}`,
-      memberId: 'm10',
-      memberName: 'Liya Getachew',
+      memberId: body.memberId ?? 'm10',
+      memberName: member?.fullName ?? 'Liya Getachew',
       productId: body.productId ?? 'lp1',
       productName: 'Personal Loan',
       status: 'Pending',
@@ -382,11 +389,17 @@ export const handlers = [
       overdueDays: 0,
       classification: 'Pass',
       guarantors: [],
-      collateralIds: [],
+      collateralIds: body.collateralIds ?? [],
       aiScore: Math.floor(Math.random() * 40) + 55,
       aiPdPct: Number((Math.random() * 15).toFixed(1)),
       aiGuidance: 'Approve with reduced amount',
+      repaymentAccountId: body.repaymentAccountId,
+      reserveAccountId: body.reserveAccountId,
     };
+    (body.collateralIds ?? []).forEach((cid: string) => {
+      const c = collateral.find((x) => x.id === cid);
+      if (c) c.loanId = newLoan.id;
+    });
     loans.unshift(newLoan);
     return json(newLoan);
   }),
@@ -431,7 +444,10 @@ export const handlers = [
   http.post('/api/vaults/:id/verify', ({ params }) => { const v = vaults.find((x) => x.id === params.id); if (v) v.status = 'Verified'; return json({ ok: true }); }),
 
   http.get('/api/accounts', () => json(savingsAccounts)),
-  http.get('/api/accounts/member/:memberId', ({ params }) => json(savingsAccounts.filter((a) => a.memberId === params.memberId))),
+  http.get('/api/accounts/member/:memberId', ({ params }) => {
+    const id = String(params.memberId).replace(/^m/i, '');
+    return json(savingsAccounts.filter((a) => a.memberId === id));
+  }),
   http.post('/api/accounts', async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
     const id = String(++idCounter);

@@ -16,6 +16,7 @@ import {
 } from 'antd';
 import { PlayCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
 import type { BatchJob, CreditCommittee, LoanCategory, LoanGroup } from '../types';
 import { fmtETB } from '../utils/format';
@@ -148,8 +149,8 @@ export default function LoanAdmin() {
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Row gutter={16}>
             <Col span={24}><Form.Item label="Name" name="name" rules={[{ required: true }]}><Input /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Min Amount (auto-approve below)" name="minAmount" initialValue={0}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Max Amount" name="maxAmount" initialValue={0}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Min Amount (auto-approve below)" name="minAmount" initialValue={0}><CurrencyInput style={{ width: '100%' }} min={0} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Max Amount" name="maxAmount" initialValue={0}><CurrencyInput style={{ width: '100%' }} min={0} /></Form.Item></Col>
           </Row>
         </Form>
       </Modal>

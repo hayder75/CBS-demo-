@@ -159,6 +159,10 @@ export interface Loan {
   aiPdPct?: number;
   aiGuidance?: string;
   nextDueDate?: string;
+  purpose?: string;
+  graceMonths?: number;
+  repaymentAccountId?: number;
+  reserveAccountId?: number;
 }
 
 export interface GLAccount {
@@ -206,6 +210,11 @@ export interface Collateral {
   code: string;
   type: string;
   owner: string;
+  documentNo?: string;
+  documentAttachment?: string;
+  registrationDate?: string;
+  custodian?: string;
+  insuranceCompany?: string;
   description: string;
   valuation: number;
   forcedSaleValue: number;
@@ -213,6 +222,7 @@ export interface Collateral {
   loanId?: string;
   loanRef?: string;
   insuranceExpiry?: string;
+  notes?: string;
   status: 'Pledged' | 'Released' | 'Pending Release';
 }
 

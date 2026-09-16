@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Col,
+  DatePicker,
   Descriptions,
   Drawer,
   Form,
@@ -16,12 +17,20 @@ import {
   Table,
   Tag,
   Typography,
+  Upload,
   message,
 } from 'antd';
-import { FileProtectOutlined, PlusOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import {
+  FileProtectOutlined,
+  PaperClipOutlined,
+  PlusOutlined,
+  SafetyCertificateOutlined,
+  UploadOutlined,
+} from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
-import type { Collateral } from '../types';
+import type { Collateral, Member } from '../types';
 import { fmtETB, fmtDate } from '../utils/format';
 
 const statusColor: Record<Collateral['status'], string> = {
@@ -32,10 +41,12 @@ const statusColor: Record<Collateral['status'], string> = {
 
 export default function Collateral() {
   const [items, setItems] = useState<Collateral[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [selected, setSelected] = useState<Collateral | null>(null);
   const [releasing, setReleasing] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [attachment, setAttachment] = useState('');
   const [form] = Form.useForm();
 
   const load = async () => {
@@ -44,14 +55,24 @@ export default function Collateral() {
 
   useEffect(() => {
     load().catch(() => {});
+    api<Member[]>('/api/members').then(setMembers).catch(() => {});
   }, []);
 
   const addCollateral = async () => {
     const values = await form.validateFields();
     setSaving(true);
     try {
-      await api('/api/collateral', { method: 'POST', body: JSON.stringify(values) });
+      await api('/api/collateral', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...values,
+          registrationDate: values.registrationDate?.format('YYYY-MM-DD'),
+          insuranceExpiry: values.insuranceExpiry?.format('YYYY-MM-DD'),
+          documentAttachment: attachment || undefined,
+        }),
+      });
       setAddOpen(false);
+      setAttachment('');
       form.resetFields();
       message.success('Collateral registered and pledged');
       await load();
@@ -140,6 +161,7 @@ export default function Collateral() {
             { title: 'Code', dataIndex: 'code', width: 100 },
             { title: 'Type', dataIndex: 'type' },
             { title: 'Owner', dataIndex: 'owner' },
+            { title: 'Document No', dataIndex: 'documentNo', width: 140, render: (v) => v ?? '—' },
             { title: 'Description', dataIndex: 'description', ellipsis: true },
             { title: 'Linked Loan', dataIndex: 'loanRef', width: 110 },
             { title: 'Valuation', dataIndex: 'valuation', align: 'right', render: (v) => fmtETB(v) },
@@ -165,12 +187,27 @@ export default function Collateral() {
               <Descriptions.Item label="Code">{selected.code}</Descriptions.Item>
               <Descriptions.Item label="Type">{selected.type}</Descriptions.Item>
               <Descriptions.Item label="Owner">{selected.owner}</Descriptions.Item>
+              <Descriptions.Item label="Document No">{selected.documentNo ?? '—'}</Descriptions.Item>
+              <Descriptions.Item label="Attachment">
+                {selected.documentAttachment ? (
+                  <Space size={4}>
+                    <PaperClipOutlined />
+                    <Typography.Text>{selected.documentAttachment}</Typography.Text>
+                  </Space>
+                ) : (
+                  '—'
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="Registration Date">{fmtDate(selected.registrationDate)}</Descriptions.Item>
+              <Descriptions.Item label="Custodian">{selected.custodian ?? '—'}</Descriptions.Item>
+              <Descriptions.Item label="Insurance Company">{selected.insuranceCompany ?? '—'}</Descriptions.Item>
               <Descriptions.Item label="Description">{selected.description}</Descriptions.Item>
               <Descriptions.Item label="Valuation">{fmtETB(selected.valuation)}</Descriptions.Item>
               <Descriptions.Item label="Forced Sale Value">{fmtETB(selected.forcedSaleValue)}</Descriptions.Item>
               <Descriptions.Item label="Haircut / Discount">{selected.discountPct}%</Descriptions.Item>
               <Descriptions.Item label="Linked Loan">{selected.loanRef ?? '—'}</Descriptions.Item>
               <Descriptions.Item label="Insurance Expiry">{fmtDate(selected.insuranceExpiry)}</Descriptions.Item>
+              {selected.notes && <Descriptions.Item label="Notes">{selected.notes}</Descriptions.Item>}
               <Descriptions.Item label="Status">
                 <Tag color={statusColor[selected.status]}>{selected.status}</Tag>
               </Descriptions.Item>
@@ -215,8 +252,23 @@ export default function Collateral() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Owner" name="owner" rules={[{ required: true }]}>
-                <Input placeholder="Member full name" />
+              <Form.Item label="Owner / Member" name="owner" rules={[{ required: true }]}>
+                <Select
+                  showSearch
+                  optionFilterProp="label"
+                  placeholder="Select member"
+                  options={members.map((m) => ({ label: `${m.fullName} (${m.memberNo})`, value: m.fullName }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Document ID Number" name="documentNo" rules={[{ required: true, message: 'Document number required' }]}>
+                <Input placeholder="e.g. Title deed / plate / certificate no" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Registration Date" name="registrationDate">
+                <DatePicker style={{ width: '100%' }} />
               </Form.Item>
             </Col>
             <Col span={24}>
@@ -226,7 +278,7 @@ export default function Collateral() {
             </Col>
             <Col span={12}>
               <Form.Item label="Valuation (ETB)" name="valuation" rules={[{ required: true }]}>
-                <InputNumber style={{ width: '100%' }} min={1000} step={10000} />
+                <CurrencyInput style={{ width: '100%' }} min={1000} step={10000} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -234,9 +286,46 @@ export default function Collateral() {
                 <InputNumber style={{ width: '100%' }} min={0} max={100} />
               </Form.Item>
             </Col>
-            <Col span={24}>
+            <Col span={12}>
+              <Form.Item label="Custodian" name="custodian">
+                <Select
+                  placeholder="Where the original document is held"
+                  options={['Head Office Vault', 'Branch Vault', 'Bank', 'Member'].map((c) => ({ label: c, value: c }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Insurance Company" name="insuranceCompany">
+                <Input placeholder="e.g. Ethiopian Insurance" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Insurance Expiry" name="insuranceExpiry">
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
               <Form.Item label="Linked Loan Ref" name="loanRef">
                 <Input placeholder="LN-2026-XXX (optional)" />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item label="Document Attachment">
+                <Upload
+                  beforeUpload={(file) => {
+                    setAttachment(file.name);
+                    return false;
+                  }}
+                  maxCount={1}
+                  onRemove={() => setAttachment('')}
+                >
+                  <Button icon={<UploadOutlined />}>Attach document</Button>
+                </Upload>
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item label="Notes" name="notes">
+                <Input.TextArea rows={2} placeholder="Additional remarks (optional)" />
               </Form.Item>
             </Col>
           </Row>

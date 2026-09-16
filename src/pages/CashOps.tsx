@@ -5,7 +5,6 @@ import {
   Col,
   Form,
   Input,
-  InputNumber,
   Modal,
   Row,
   Select,
@@ -17,6 +16,7 @@ import {
 } from 'antd';
 import { BankOutlined, DollarOutlined, PlusOutlined, WalletOutlined, WarningOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
 import type { CashMovement, PettyCashEntry, Till } from '../types';
 import { fmtETB } from '../utils/format';
@@ -232,7 +232,7 @@ export default function CashOps() {
             </Col>
           </Row>
           <Form.Item label="Amount (ETB)" name="amount" rules={[{ required: true, message: 'Amount required' }]}>
-            <InputNumber style={{ width: '100%' }} min={1} step={1000} />
+            <CurrencyInput style={{ width: '100%' }} min={1} step={1000} />
           </Form.Item>
           <Typography.Text type="secondary">
             Vault-to-teller, teller-to-vault, and vault-to-bank transfers require manager (maker-checker)
@@ -263,7 +263,7 @@ export default function CashOps() {
             </Col>
             <Col span={12}>
               <Form.Item label="Amount (ETB)" name="amount" rules={[{ required: true, message: 'Amount required' }]}>
-                <InputNumber style={{ width: '100%' }} min={1} step={10} />
+                <CurrencyInput style={{ width: '100%' }} min={1} step={10} />
               </Form.Item>
             </Col>
           </Row>

@@ -18,7 +18,7 @@ import {
 import { PlusOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { api } from '../api/client';
-import type { Currency, PaymentMode, SavingsAccount, ShareAccount, ShareRequest, Vault } from '../types';
+import type { Currency, Member, PaymentMode, SavingsAccount, SavingsProduct, ShareAccount, ShareCategory, ShareRequest, Vault } from '../types';
 import { fmtETB } from '../utils/format';
 
 const statusTag = (s: string) => (
@@ -32,6 +32,9 @@ export default function Registration() {
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [savingsProducts, setSavingsProducts] = useState<SavingsProduct[]>([]);
+  const [shareCategories, setShareCategories] = useState<ShareCategory[]>([]);
 
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -44,9 +47,20 @@ export default function Registration() {
     setVaults(await api<Vault[]>('/api/vaults').catch(() => []));
     setPaymentModes(await api<PaymentMode[]>('/api/payment-modes').catch(() => []));
     setCurrencies(await api<Currency[]>('/api/currencies').catch(() => []));
+    setSavingsProducts(await api<SavingsProduct[]>('/api/savings/products').catch(() => []));
+    setShareCategories(await api<ShareCategory[]>('/api/share-categories').catch(() => []));
   };
 
-  useEffect(() => { load(); }, []);
+  const memberOf = (v: string) =>
+    members.find((m) => m.id.replace(/^m/i, '') === String(v).replace(/^m/i, ''))?.fullName ?? String(v);
+
+  const productOf = (v: string) =>
+    savingsProducts.find((p) => p.id === String(v))?.name ?? String(v);
+
+  const categoryOf = (v: string) =>
+    shareCategories.find((c) => c.id === String(v))?.name ?? String(v);
+
+  useEffect(() => { load(); api<Member[]>('/api/members').then(setMembers).catch(() => {}); }, []);
 
   const verify = async (path: string) => { await api(path, { method: 'POST' }); message.success('Verified'); await load(); };
 
@@ -68,8 +82,8 @@ export default function Registration() {
 
   const accountCols = [
     { title: 'Account No', dataIndex: 'accountNo' },
-    { title: 'Member ID', dataIndex: 'memberId', width: 90 },
-    { title: 'Product ID', dataIndex: 'productId', width: 90 },
+    { title: 'Member', dataIndex: 'memberId', width: 120, render: memberOf },
+    { title: 'Product', dataIndex: 'productId', width: 140, render: productOf },
     { title: 'Type', dataIndex: 'accountType', width: 90 },
     { title: 'Opened', dataIndex: 'openedDate', width: 110 },
     { title: 'Balance', dataIndex: 'balance', align: 'right' as const, render: (v: number) => fmtETB(v) },
@@ -86,9 +100,8 @@ export default function Registration() {
   ];
 
   const shareCols = [
-    { title: 'ID', dataIndex: 'id', width: 80 },
-    { title: 'Member', dataIndex: 'memberId', width: 100 },
-    { title: 'Category', dataIndex: 'categoryId', width: 100 },
+    { title: 'Member', dataIndex: 'memberId', width: 120, render: memberOf },
+    { title: 'Category', dataIndex: 'categoryId', width: 140, render: categoryOf },
     { title: 'Shares', dataIndex: 'shareCount', align: 'right' as const },
     { title: 'Status', dataIndex: 'status', width: 100, render: statusTag },
     {
@@ -125,7 +138,7 @@ export default function Registration() {
                     dataSource={shareReqs}
                     pagination={false}
                     columns={[
-                      { title: 'Request', dataIndex: 'shareAccountId', width: 120 },
+                      { title: 'Member', dataIndex: 'shareAccountId', width: 120, render: (v) => { const sa = shares.find((s) => s.id === String(v)); return sa ? memberOf(sa.memberId) : String(v); } },
                       { title: 'Type', dataIndex: 'requestType', width: 110, render: (t: string) => <Tag color={t === 'UPGRADE' ? 'green' : 'orange'}>{t}</Tag> },
                       { title: 'Shares', dataIndex: 'shareCount', align: 'right' as const },
                       { title: 'Status', dataIndex: 'status', width: 100, render: statusTag },
@@ -216,10 +229,10 @@ export default function Registration() {
       <Modal title="New Savings Account" open={open === 'account'} onCancel={() => setOpen(null)} onOk={() => submit('/api/accounts')} okText="Create Account" confirmLoading={saving}>
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Row gutter={16}>
-            <Col span={12}><Form.Item label="Member ID" name="memberId" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={1} /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Product (Saving) ID" name="productId" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={1} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Member" name="memberId" rules={[{ required: true }]}><Select showSearch optionFilterProp="label" placeholder="Select member" options={members.map((m) => ({ label: `${m.fullName} (${m.memberNo})`, value: m.id }))} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Product" name="productId" rules={[{ required: true }]}><Select placeholder="Select product" options={savingsProducts.map((p) => ({ label: `${p.code} — ${p.name}`, value: p.id }))} /></Form.Item></Col>
             <Col span={12}><Form.Item label="Account Type" name="accountType" initialValue="Saving"><Select options={['Saving', 'Current', 'Fixed'].map((t) => ({ label: t, value: t }))} /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Currency ID" name="currencyId" initialValue={1}><InputNumber style={{ width: '100%' }} min={1} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Currency" name="currencyId" initialValue="1"><Select placeholder="Select currency" options={currencies.map((c) => ({ label: `${c.name} (${c.code})`, value: c.id }))} /></Form.Item></Col>
           </Row>
         </Form>
       </Modal>
@@ -228,9 +241,9 @@ export default function Registration() {
       <Modal title="New Share Account" open={open === 'share'} onCancel={() => setOpen(null)} onOk={() => submit('/api/share-accounts')} okText="Create Share" confirmLoading={saving}>
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Row gutter={16}>
-            <Col span={12}><Form.Item label="Member ID" name="memberId" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={1} /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Share Category ID" name="categoryId" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={1} /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Saving Account ID" name="savingAccountId"><InputNumber style={{ width: '100%' }} min={1} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Member" name="memberId" rules={[{ required: true }]}><Select showSearch optionFilterProp="label" placeholder="Select member" options={members.map((m) => ({ label: `${m.fullName} (${m.memberNo})`, value: m.id }))} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Share Category" name="categoryId" rules={[{ required: true }]}><Select placeholder="Select category" options={shareCategories.map((c) => ({ label: `${c.code} — ${c.name}`, value: c.id }))} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Saving Account" name="savingAccountId"><Select allowClear placeholder="Select savings account" options={accounts.map((a) => ({ label: `${a.accountNo} — ${memberOf(a.memberId)}`, value: a.id }))} /></Form.Item></Col>
             <Col span={12}><Form.Item label="Share Count" name="shareCount" initialValue={0}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
           </Row>
         </Form>

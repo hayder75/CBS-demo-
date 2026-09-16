@@ -103,7 +103,24 @@ public class LoanController {
         loan.setAiScore(55 + (int) (Math.random() * 40));
         loan.setAiPdPct(new BigDecimal(String.format("%.1f", Math.random() * 15)));
         loan.setAiGuidance("Approve with reduced amount");
-        return toDto(loanRepository.save(loan));
+        Loan saved = loanRepository.save(loan);
+
+        Object collateralIds = body.get("collateralIds");
+        if (collateralIds instanceof List<?> ids) {
+            for (Object raw : ids) {
+                try {
+                    Long cid = Long.valueOf(raw.toString());
+                    collateralRepository.findById(cid).ifPresent(c -> {
+                        c.setLoanId(saved.getId());
+                        collateralRepository.save(c);
+                    });
+                } catch (NumberFormatException ignored) {
+                    // skip malformed ids
+                }
+            }
+        }
+
+        return toDto(saved);
     }
 
     @PostMapping("/{id}/decide")

@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Avatar,
   Button,
   Card,
   Col,
   DatePicker,
-  Descriptions,
-  Drawer,
   Form,
   Input,
   Modal,
@@ -14,19 +13,20 @@ import {
   Select,
   Space,
   Table,
-  Tabs,
   Tag,
   Typography,
   message,
 } from 'antd';
 import {
-  EnvironmentOutlined,
   PlusOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import dayjs from 'dayjs';
+import { FaydaIdInput, faydaValueFromEvent } from '../components/FaydaIdInput';
+import { useMembers } from '../context/MembersContext';
 import { api } from '../api/client';
-import type { Member, SavingsTransaction } from '../types';
+import type { Member } from '../types';
 import { fmtETB, fmtDate } from '../utils/format';
 
 const statusColor: Record<Member['status'], string> = {
@@ -38,19 +38,11 @@ const statusColor: Record<Member['status'], string> = {
 };
 
 export default function Members() {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string | undefined>();
-  const [selected, setSelected] = useState<Member | null>(null);
-  const [transactions, setTransactions] = useState<SavingsTransaction[]>([]);
-  const [txLoading, setTxLoading] = useState(false);
+  const navigate = useNavigate();
+  const { members, setMembers, search, setSearch, statusFilter, setStatusFilter } = useMembers();
   const [createOpen, setCreateOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
-
-  useEffect(() => {
-    api<Member[]>('/api/members').then(setMembers);
-  }, []);
 
   const createMember = async () => {
     const values = await form.validateFields();
@@ -85,11 +77,7 @@ export default function Members() {
   );
 
   const openProfile = (m: Member) => {
-    setSelected(m);
-    setTxLoading(true);
-    api<SavingsTransaction[]>(`/api/savings/transactions/${m.id}`)
-      .then(setTransactions)
-      .finally(() => setTxLoading(false));
+    navigate(`/members/${m.id}`);
   };
 
   const summary = useMemo(
@@ -203,105 +191,6 @@ export default function Members() {
         />
       </Card>
 
-      <Drawer
-        title={
-          selected && (
-            <Space>
-              <Avatar style={{ background: selected.photoColor }} icon={<UserOutlined />} />
-              <span>{selected.fullName}</span>
-              <Tag color={statusColor[selected.status]}>{selected.status}</Tag>
-            </Space>
-          )
-        }
-        width={640}
-        open={!!selected}
-        onClose={() => setSelected(null)}
-      >
-        {selected && (
-          <Tabs
-            items={[
-              {
-                key: 'profile',
-                label: 'Profile',
-                children: (
-                  <Descriptions column={2} bordered size="small">
-                    <Descriptions.Item label="Member No">{selected.memberNo}</Descriptions.Item>
-                    <Descriptions.Item label="Gender">{selected.gender}</Descriptions.Item>
-                    <Descriptions.Item label="Birth Date">{fmtDate(selected.birthDate)}</Descriptions.Item>
-                    <Descriptions.Item label="Phone">{selected.phone}</Descriptions.Item>
-                    <Descriptions.Item label="Email">{selected.email || '—'}</Descriptions.Item>
-                    <Descriptions.Item label="Fayda ID">{selected.faydaId}</Descriptions.Item>
-                    <Descriptions.Item label="Kebele">{selected.kebele}</Descriptions.Item>
-                    <Descriptions.Item label="Woreda">{selected.woreda}</Descriptions.Item>
-                    <Descriptions.Item label="Address" span={2}>
-                      <Space>
-                        <EnvironmentOutlined /> {selected.city}, {selected.kebele}
-                      </Space>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Occupation">{selected.occupation}</Descriptions.Item>
-                    <Descriptions.Item label="Employer">{selected.employer || '—'}</Descriptions.Item>
-                    <Descriptions.Item label="Share Balance">{fmtETB(selected.shareBalance)}</Descriptions.Item>
-                    <Descriptions.Item label="Savings Balance">{fmtETB(selected.savingsBalance)}</Descriptions.Item>
-                    <Descriptions.Item label="Loan Outstanding">
-                      {selected.loanOutstanding ? fmtETB(selected.loanOutstanding) : '—'}
-                    </Descriptions.Item>
-                  </Descriptions>
-                ),
-              },
-              {
-                key: 'nok',
-                label: 'Next of Kin & Beneficiaries',
-                children: (
-                  <Space direction="vertical" style={{ width: '100%' }}>
-                    <Typography.Text strong>Next of Kin</Typography.Text>
-                    {selected.nextOfKin.map((n, i) => (
-                      <Card size="small" key={i}>
-                        <Descriptions column={3} size="small">
-                          <Descriptions.Item label="Name">{n.name}</Descriptions.Item>
-                          <Descriptions.Item label="Relation">{n.relation}</Descriptions.Item>
-                          <Descriptions.Item label="Phone">{n.phone}</Descriptions.Item>
-                        </Descriptions>
-                      </Card>
-                    ))}
-                    <Typography.Text strong>Beneficiaries</Typography.Text>
-                    {selected.beneficiaries.map((b, i) => (
-                      <Card size="small" key={i}>
-                        <Descriptions column={3} size="small">
-                          <Descriptions.Item label="Name">{b.name}</Descriptions.Item>
-                          <Descriptions.Item label="Relation">{b.relation}</Descriptions.Item>
-                          <Descriptions.Item label="Allocation">{b.percent}%</Descriptions.Item>
-                        </Descriptions>
-                      </Card>
-                    ))}
-                  </Space>
-                ),
-              },
-              {
-                key: 'statement',
-                label: 'Statement',
-                children: (
-                  <Table
-                    size="small"
-                    loading={txLoading}
-                    rowKey="id"
-                    dataSource={transactions}
-                    pagination={false}
-                    columns={[
-                      { title: 'Date', dataIndex: 'date' },
-                      { title: 'Product', dataIndex: 'productId', render: (v) => String(v).toUpperCase().replace('SP', 'S-') },
-                      { title: 'Type', dataIndex: 'type' },
-                      { title: 'Channel', dataIndex: 'channel' },
-                      { title: 'Teller', dataIndex: 'teller' },
-                      { title: 'Amount', dataIndex: 'amount', align: 'right', render: (v) => fmtETB(v) },
-                    ]}
-                  />
-                ),
-              },
-            ]}
-          />
-        )}
-      </Drawer>
-
       <Modal
         title="Register New Member"
         open={createOpen}
@@ -329,7 +218,7 @@ export default function Members() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Join Date" name="joinDate" rules={[{ required: true }]}>
+              <Form.Item label="Join Date" name="joinDate" rules={[{ required: true }]} initialValue={dayjs()}>
                 <DatePicker style={{ width: '100%' }} />
               </Form.Item>
             </Col>
@@ -344,8 +233,8 @@ export default function Members() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Fayda ID" name="faydaId">
-                <Input placeholder="FAY-..." />
+              <Form.Item label="Fayda ID Number" name="faydaId" getValueFromEvent={faydaValueFromEvent}>
+                <FaydaIdInput style={{ width: '100%' }} />
               </Form.Item>
             </Col>
             <Col span={12}>

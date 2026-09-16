@@ -13,7 +13,7 @@ import {
 } from 'antd';
 import { ProCard } from '@ant-design/pro-components';
 import { api } from '../api/client';
-import type { SavingsTransaction } from '../types';
+import type { Member, SavingsTransaction } from '../types';
 import { fmtETB } from '../utils/format';
 
 const auditTag = (s: string) => (
@@ -22,9 +22,17 @@ const auditTag = (s: string) => (
 
 export default function Auditing() {
   const [txns, setTxns] = useState<SavingsTransaction[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [tab, setTab] = useState('Unaudited');
   const [noteOpen, setNoteOpen] = useState<string | null>(null);
   const [note, setNote] = useState('');
+
+  useEffect(() => {
+    api<Member[]>('/api/members').then(setMembers).catch(() => {});
+  }, []);
+
+  const memberOf = (v: string) =>
+    members.find((m) => String(m.id) === String(v))?.fullName ?? String(v);
 
   const load = async (status: string) => {
     setTxns(await api<SavingsTransaction[]>(`/api/audit/transactions?status=${status}`).catch(() => []));
@@ -40,7 +48,7 @@ export default function Auditing() {
 
   const cols = [
     { title: 'Date', dataIndex: 'date', width: 110 },
-    { title: 'Member', dataIndex: 'memberId', width: 100 },
+    { title: 'Member', dataIndex: 'memberId', width: 130, render: memberOf },
     { title: 'Type', dataIndex: 'type', width: 130 },
     { title: 'Amount', dataIndex: 'amount', align: 'right' as const, render: (v: number) => fmtETB(v) },
     { title: 'Teller', dataIndex: 'teller', width: 130 },

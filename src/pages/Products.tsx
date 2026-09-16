@@ -18,6 +18,7 @@ import {
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
 import type { Charge, ShareCategory, SavingsProduct } from '../types';
 import { fmtETB } from '../utils/format';
@@ -184,7 +185,7 @@ export default function Products() {
             </Col>
             <Col span={12}>
               <Form.Item label="Minimum Balance" name="minBalance" initialValue={0}>
-                <InputNumber style={{ width: '100%' }} min={0} step={100} />
+                <CurrencyInput style={{ width: '100%' }} min={0} step={100} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -203,7 +204,7 @@ export default function Products() {
             <Col span={12}><Form.Item label="Code" name="code" rules={[{ required: true }]}><Input /></Form.Item></Col>
             <Col span={12}><Form.Item label="Name" name="name" rules={[{ required: true }]}><Input /></Form.Item></Col>
             <Col span={8}><Form.Item label="Total Shares" name="totalShares" initialValue={0}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
-            <Col span={8}><Form.Item label="Nominal Price" name="nominalPrice" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+            <Col span={8}><Form.Item label="Nominal Price" name="nominalPrice" rules={[{ required: true }]}><CurrencyInput style={{ width: '100%' }} min={0} /></Form.Item></Col>
             <Col span={8}><Form.Item label="Shares for Sale" name="sharesForSale" initialValue={0}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
             <Col span={8}><Form.Item label="Min per Customer" name="minPerCustomer" initialValue={1}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
             <Col span={8}><Form.Item label="Max per Customer" name="maxPerCustomer" initialValue={0}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
@@ -224,7 +225,7 @@ export default function Products() {
                 <Select options={['Flat', 'Fixed', 'Percentile'].map((t) => ({ label: t, value: t }))} />
               </Form.Item>
             </Col>
-            <Col span={12}><Form.Item label="Amount" name="amount" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Amount" name="amount" rules={[{ required: true }]}><CurrencyInput style={{ width: '100%' }} min={0} /></Form.Item></Col>
             <Col span={12}>
               <Form.Item label="Apply Penalty" name="applyPenalty" valuePropName="checked">
                 <Select options={[{ label: 'No', value: false }, { label: 'Yes', value: true }]} />

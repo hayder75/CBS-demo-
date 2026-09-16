@@ -275,11 +275,11 @@ export const checkOffBatches: CheckOffBatch[] = [
 ];
 
 export const collateral: Collateral[] = [
-  { id: 'c1', code: 'COL-001', type: 'Property Title Deed', owner: 'Abebe Bekele', description: 'Title deed - 2-bed house, Bole, 120 m²', valuation: 2400000, forcedSaleValue: 1680000, discountPct: 30, loanId: 'l1', loanRef: 'LN-2026-001', insuranceExpiry: '2027-03-10', status: 'Pledged' },
-  { id: 'c2', code: 'COL-002', type: 'Property Title Deed', owner: 'Samuel Worku', description: 'Title deed - 3-bed house, Yeka, 180 m²', valuation: 3800000, forcedSaleValue: 2660000, discountPct: 30, loanId: 'l3', loanRef: 'LN-2026-027', insuranceExpiry: '2027-01-15', status: 'Pledged' },
-  { id: 'c3', code: 'COL-003', type: 'Vehicle Ownership', owner: 'Tigist Fikre', description: 'Toyota Corolla 2022, Chassis TZ1234', valuation: 1450000, forcedSaleValue: 1160000, discountPct: 20, loanId: 'l5', loanRef: 'LN-2026-038', insuranceExpiry: '2027-05-02', status: 'Pledged' },
-  { id: 'c4', code: 'COL-004', type: 'Share Certificate', owner: 'Meseret Alemu', description: 'Member share certificate - 2,400 shares', valuation: 240000, forcedSaleValue: 192000, discountPct: 20, loanId: 'l9', loanRef: 'LN-2026-050', status: 'Pending Release' },
-  { id: 'c5', code: 'COL-005', type: 'Bank Guarantee', owner: 'Hanna Girma', description: 'Third-party guarantee - Dashen Bank', valuation: 120000, forcedSaleValue: 120000, discountPct: 0, loanId: 'l2', loanRef: 'LN-2026-014', insuranceExpiry: '2026-12-31', status: 'Pledged' },
+  { id: 'c1', code: 'COL-001', type: 'Property Title Deed', owner: 'Abebe Bekele', documentNo: 'TT-AB-88421', documentAttachment: 'title_deed_bole.pdf', registrationDate: '2019-06-14', custodian: 'Head Office Vault', insuranceCompany: 'NIC', description: 'Title deed - 2-bed house, Bole, 120 m²', valuation: 2400000, forcedSaleValue: 1680000, discountPct: 30, loanId: 'l1', loanRef: 'LN-2026-001', insuranceExpiry: '2027-03-10', status: 'Pledged' },
+  { id: 'c2', code: 'COL-002', type: 'Property Title Deed', owner: 'Samuel Worku', documentNo: 'TT-YK-77120', documentAttachment: 'title_deed_yeka.pdf', registrationDate: '2018-11-02', custodian: 'Head Office Vault', insuranceCompany: 'Oromia Insurance', description: 'Title deed - 3-bed house, Yeka, 180 m²', valuation: 3800000, forcedSaleValue: 2660000, discountPct: 30, loanId: 'l3', loanRef: 'LN-2026-027', insuranceExpiry: '2027-01-15', status: 'Pledged' },
+  { id: 'c3', code: 'COL-003', type: 'Vehicle Ownership', owner: 'Tigist Fikre', documentNo: 'PLATE-AA-66390', documentAttachment: 'corolla_2022_doc.pdf', registrationDate: '2022-04-20', custodian: 'Branch Vault', insuranceCompany: 'Ethiopian Insurance', description: 'Toyota Corolla 2022, Chassis TZ1234', valuation: 1450000, forcedSaleValue: 1160000, discountPct: 20, loanId: 'l5', loanRef: 'LN-2026-038', insuranceExpiry: '2027-05-02', status: 'Pledged' },
+  { id: 'c4', code: 'COL-004', type: 'Share Certificate', owner: 'Meseret Alemu', documentNo: 'SH-CERT-2400', documentAttachment: 'share_cert_2400.pdf', registrationDate: '2021-02-11', custodian: 'Head Office Vault', notes: 'Held against secured overdraft facility.', description: 'Member share certificate - 2,400 shares', valuation: 240000, forcedSaleValue: 192000, discountPct: 20, loanId: 'l9', loanRef: 'LN-2026-050', status: 'Pending Release' },
+  { id: 'c5', code: 'COL-005', type: 'Bank Guarantee', owner: 'Hanna Girma', documentNo: 'BG-DSB-2026-014', documentAttachment: 'dashen_bg.pdf', registrationDate: '2026-01-05', custodian: 'Branch Vault', insuranceCompany: 'Dashen Bank', description: 'Third-party guarantee - Dashen Bank', valuation: 120000, forcedSaleValue: 120000, discountPct: 0, loanId: 'l2', loanRef: 'LN-2026-014', insuranceExpiry: '2026-12-31', status: 'Pledged' },
 ];
 
 export const shareTransfers: ShareTransfer[] = [
@@ -402,12 +402,39 @@ export const vaults: Vault[] = [
 ];
 
 export const savingsAccounts: SavingsAccount[] = [
-  { id: '1', accountNo: 'SA-MEM-01001-1', memberId: '1', productId: '1', accountType: 'Saving', openedDate: '2016-01-15', balance: 84000, status: 'Active', currencyId: '1', branchId: '1' },
-  { id: '2', accountNo: 'SA-MEM-01001-2', memberId: '1', productId: '2', accountType: 'Saving', openedDate: '2016-01-15', balance: 112000, status: 'Active', currencyId: '1', branchId: '1' },
-  { id: '3', accountNo: 'SA-MEM-01002-1', memberId: '2', productId: '1', accountType: 'Saving', openedDate: '2016-02-15', balance: 86000, status: 'Active', currencyId: '1', branchId: '2' },
-  { id: '4', accountNo: 'SA-MEM-01002-2', memberId: '2', productId: '2', accountType: 'Saving', openedDate: '2016-02-15', balance: 96000, status: 'Active', currencyId: '1', branchId: '2' },
-  { id: '5', accountNo: 'SA-MEM-01003-1', memberId: '3', productId: '1', accountType: 'Saving', openedDate: '2017-03-15', balance: 82000, status: 'Active', currencyId: '1', branchId: '2' },
-  { id: '9', accountNo: 'SA-MEM-09990-2', memberId: '9', productId: '2', accountType: 'Saving', openedDate: '2026-09-01', balance: 0, status: 'Pending', currencyId: '1', branchId: '4' },
+  { id: '1', accountNo: 'SA-MEM-01001-1', memberId: '1', productId: 'sp1', accountType: 'Saving', openedDate: '2016-01-15', balance: 84000, status: 'Active', currencyId: '1', branchId: '1' },
+  { id: '2', accountNo: 'SA-MEM-01001-2', memberId: '1', productId: 'sp2', accountType: 'Saving', openedDate: '2016-01-15', balance: 112000, status: 'Active', currencyId: '1', branchId: '1' },
+  { id: '3', accountNo: 'SA-MEM-01002-1', memberId: '2', productId: 'sp1', accountType: 'Saving', openedDate: '2016-02-15', balance: 86000, status: 'Active', currencyId: '1', branchId: '2' },
+  { id: '4', accountNo: 'SA-MEM-01002-2', memberId: '2', productId: 'sp2', accountType: 'Saving', openedDate: '2016-02-15', balance: 96000, status: 'Active', currencyId: '1', branchId: '2' },
+  { id: '5', accountNo: 'SA-MEM-01003-1', memberId: '3', productId: 'sp1', accountType: 'Saving', openedDate: '2017-03-15', balance: 82000, status: 'Active', currencyId: '1', branchId: '2' },
+  { id: '9', accountNo: 'SA-MEM-09990-2', memberId: '9', productId: 'sp2', accountType: 'Saving', openedDate: '2026-09-01', balance: 0, status: 'Pending', currencyId: '1', branchId: '4' },
+  ...(() => {
+    const extra: SavingsAccount[] = [];
+    let id = 10;
+    members.forEach((m, i) => {
+      const idx = i + 1;
+      if (idx === 1 || idx === 2 || idx === 9) return;
+      const count = idx === 3 ? 1 : idx === 4 || idx === 6 || idx === 8 || idx === 10 ? 2 : 1;
+      for (let k = 0; k < count; k++) {
+        const kth = idx === 3 ? 1 : k;
+        const full = Math.round(m.savingsBalance);
+        const balance = count === 1 && idx !== 3 ? full : kth === 0 ? Math.round(full * 0.6) : full - Math.round(full * 0.6);
+        extra.push({
+          id: String(id++),
+          accountNo: `SA-MEM-${String(idx).padStart(5, '0')}-${kth + 1}`,
+          memberId: String(idx),
+          productId: kth === 0 ? 'sp1' : 'sp2',
+          accountType: 'Saving',
+          openedDate: `${2016 + (i % 8)}-${String((i % 12) + 1).padStart(2, '0')}-15`,
+          balance,
+          status: i % 11 === 5 ? 'Pending' : i % 13 === 6 ? 'Dormant' : 'Active',
+          currencyId: '1',
+          branchId: String((i % 4) + 1),
+        });
+      }
+    });
+    return extra;
+  })(),
 ];
 
 export const shareCategories: ShareCategory[] = [
