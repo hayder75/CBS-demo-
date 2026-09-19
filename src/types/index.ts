@@ -574,3 +574,116 @@ export interface LoanReportRow {
   count: number;
   balance: number;
 }
+
+// ============================================================
+// Phase 1 parity modules: Day Control / TFS / Membership / GA
+// ============================================================
+
+export type DayStatus = 'Open' | 'EOD Running' | 'EOD Completed' | 'Closed';
+
+export interface BranchCob {
+  id: string;
+  branchId: string;
+  branch: string;
+  businessDate: string;
+  status: 'Open' | 'Closed';
+  closedBy?: string;
+  closedAt?: string;
+}
+
+export type EodStepStatus = 'Pending' | 'Running' | 'Done' | 'Failed' | 'Skipped';
+
+export interface EodStep {
+  key: string;
+  name: string;
+  status: EodStepStatus;
+  processed?: number;
+  message?: string;
+}
+
+export interface EodRun {
+  id: string;
+  businessDate: string;
+  status: 'Running' | 'Completed' | 'Failed';
+  startedAt: string;
+  completedAt?: string;
+  startedBy: string;
+  steps: EodStep[];
+}
+
+export interface DayControlState {
+  businessDate: string;
+  nextBusinessDate: string;
+  status: DayStatus;
+  lastEodDate?: string;
+  eodRuns: EodRun[];
+  branches: BranchCob[];
+}
+
+export interface TermDeposit {
+  id: string;
+  accountNo: string;
+  memberId: string;
+  memberName: string;
+  productId: string;
+  productName: string;
+  principal: number;
+  ratePct: number;
+  termMonths: number;
+  startDate: string;
+  maturityDate: string;
+  interestAccrued: number;
+  maturityValue: number;
+  penaltyPct: number;
+  status: 'Active' | 'Matured' | 'Broken';
+  linkedAccountId?: string;
+  brokenAt?: string;
+  brokenBy?: string;
+}
+
+export interface MembershipApplication {
+  id: string;
+  applicationNo: string;
+  applicantType: 'Individual' | 'Entity';
+  fullName: string;
+  faydaId?: string;
+  phone: string;
+  email?: string;
+  employer?: string;
+  branch: string;
+  shareProductId: string;
+  shareCount: number;
+  compulsoryProductId?: string;
+  entranceFee: number;
+  registrationFee: number;
+  paymentStatus: 'Unpaid' | 'Paid';
+  channel: 'Staff' | 'Portal';
+  status: 'Pending' | 'Approved' | 'Rejected';
+  submittedAt: string;
+  decidedBy?: string;
+  decidedAt?: string;
+  rejectReason?: string;
+  createdMemberId?: string;
+  createdShareAccountId?: string;
+}
+
+export interface GaResolution {
+  id: string;
+  ref: string;
+  year: number;
+  totalSurplus: number;
+  dividendPct: number;
+  reservePct: number;
+  distributable: number;
+  dividendPerShare: number;
+  eligibleMembers: number;
+  totalDividend: number;
+  totalReserve: number;
+  status: 'Draft' | 'Approved' | 'Executed' | 'Rejected';
+  createdBy: string;
+  approvedBy?: string;
+  createdAt: string;
+  approvedAt?: string;
+  executedAt?: string;
+  note?: string;
+}

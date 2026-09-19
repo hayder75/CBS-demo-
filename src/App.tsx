@@ -24,6 +24,10 @@ import Auditing from './pages/Auditing';
 import Finance from './pages/Finance';
 import DataMigration from './pages/DataMigration';
 import LoanAdmin from './pages/LoanAdmin';
+import DayControl from './pages/DayControl';
+import TermDeposits from './pages/TermDeposits';
+import MembershipApplications from './pages/MembershipApplications';
+import GeneralAssembly from './pages/GeneralAssembly';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -70,6 +74,10 @@ export default function App() {
           <Route path="finance" element={<Finance />} />
           <Route path="data-migration" element={<DataMigration />} />
           <Route path="loan-admin" element={<LoanAdmin />} />
+          <Route path="day-control" element={<DayControl />} />
+          <Route path="term-deposits" element={<TermDeposits />} />
+          <Route path="membership-applications" element={<MembershipApplications />} />
+          <Route path="general-assembly" element={<GeneralAssembly />} />
         </Route>
       </Routes>
     </MembersProvider>

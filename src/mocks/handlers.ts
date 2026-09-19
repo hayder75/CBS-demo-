@@ -71,6 +71,10 @@ import {
   payments,
   auditLogs,
 } from './data';
+import { dayControlHandlers } from './modules/dayControl';
+import { termDepositHandlers } from './modules/termDeposits';
+import { membershipApplicationHandlers } from './modules/membershipApplications';
+import { generalAssemblyHandlers } from './modules/generalAssembly';
 
 const json = (body: unknown) => HttpResponse.json(body as Parameters<typeof HttpResponse.json>[0]);
 
@@ -627,6 +631,11 @@ export const handlers = [
   http.get('/api/reports/transactions', () => json({ deposits: 24, withdrawals: 15, depositAmount: 850000, withdrawalAmount: 420000, total: 42 })),
   http.get('/api/reports/customers', () => json({ total: 20, active: 16, dormant: 2, suspended: 2 })),
   http.get('/api/reports/shares', () => json({ membersWithShares: 20, totalShareValue: 4820000 })),
+
+  ...dayControlHandlers,
+  ...termDepositHandlers,
+  ...membershipApplicationHandlers,
+  ...generalAssemblyHandlers,
 ];
 
 export const reportRows = {

@@ -35,3 +35,6 @@ playwright/.cache/
 *.njsproj
 *.sln
 *.sw?
+
+# Confidential third-party proposal documents (never commit)
+/files/

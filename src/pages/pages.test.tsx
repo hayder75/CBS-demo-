@@ -27,6 +27,10 @@ import Auditing from './Auditing';
 import Finance from './Finance';
 import DataMigration from './DataMigration';
 import LoanAdmin from './LoanAdmin';
+import DayControl from './DayControl';
+import TermDeposits from './TermDeposits';
+import MembershipApplications from './MembershipApplications';
+import GeneralAssembly from './GeneralAssembly';
 
 const server = setupServer(...handlers);
 const pending: Array<() => void> = [];
@@ -101,6 +105,10 @@ describe('All pages render + load data via API (mock-backed, no browser automati
     ['Finance', <Finance />, 'Trial Balance'],
     ['DataMigration', <DataMigration />, 'Data Migration'],
     ['LoanAdmin', <LoanAdmin />, 'Credit Committees'],
+    ['DayControl', <DayControl />, 'Business Date'],
+    ['TermDeposits', <TermDeposits />, 'Term Deposits'],
+    ['MembershipApplications', <MembershipApplications />, 'Membership Applications'],
+    ['GeneralAssembly', <GeneralAssembly />, 'General Assembly'],
   ];
 
   for (const [name, element, expectedText] of cases) {

@@ -28,6 +28,10 @@ import {
   CloudUploadOutlined,
   CrownOutlined,
   EuroCircleOutlined,
+  FieldTimeOutlined,
+  IdcardOutlined,
+  LockOutlined,
+  TrophyOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import type { Role } from '../types';
@@ -51,7 +55,10 @@ const menu: MenuItem[] = [
   { path: '/collateral', name: 'Collateral & Assets', icon: <FileProtectOutlined />, roles: ['ADMIN', 'MANAGER', 'CREDIT_OFFICER', 'ACCOUNTANT', 'AUDITOR'], group: 'Main Menu' },
   { path: '/shares', name: 'Shares & Dividends', icon: <FundOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'], group: 'Main Menu' },
   { path: '/cashops', name: 'Cash & Branch Ops', icon: <BankOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'ACCOUNTANT', 'AUDITOR'], group: 'Main Menu' },
+  { path: '/term-deposits', name: 'Term Deposits', icon: <LockOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'ACCOUNTANT', 'AUDITOR'], group: 'Main Menu' },
 
+  { path: '/membership-applications', name: 'Membership Applications', icon: <IdcardOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER'], group: 'Operations' },
+  { path: '/day-control', name: 'Day Control & EOD', icon: <FieldTimeOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'], group: 'Operations' },
   { path: '/approvals', name: 'Approvals', icon: <CheckSquareOutlined />, roles: ['ADMIN', 'MANAGER'], group: 'Operations' },
   { path: '/registration', name: 'Registration', icon: <SolutionOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'ACCOUNTANT'], group: 'Operations' },
   { path: '/payments', name: 'Payments', icon: <TransactionOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'ACCOUNTANT'], group: 'Operations' },
@@ -61,6 +68,7 @@ const menu: MenuItem[] = [
 
   { path: '/reports', name: 'Reports', icon: <BarChartOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'], group: 'Governance' },
   { path: '/finance', name: 'Finance', icon: <CalculatorOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'], group: 'Governance' },
+  { path: '/general-assembly', name: 'General Assembly', icon: <TrophyOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'], group: 'Governance' },
   { path: '/auditing', name: 'Auditing', icon: <AuditOutlined />, roles: ['ADMIN', 'AUDITOR'], group: 'Governance' },
   { path: '/admin', name: 'Admin', icon: <SettingOutlined />, roles: ['ADMIN', 'MANAGER'], group: 'Governance' },
 ];
