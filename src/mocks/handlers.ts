@@ -75,6 +75,15 @@ import { dayControlHandlers } from './modules/dayControl';
 import { termDepositHandlers } from './modules/termDeposits';
 import { membershipApplicationHandlers } from './modules/membershipApplications';
 import { generalAssemblyHandlers } from './modules/generalAssembly';
+import { expenseHandlers } from './modules/expenses';
+import { bankReconHandlers } from './modules/bankRecon';
+import { glRuleHandlers } from './modules/glRules';
+import { feeWaiverHandlers } from './modules/feeWaivers';
+import { notificationTemplateHandlers } from './modules/notificationTemplates';
+import { loanLifecycleHandlers } from './modules/loanLifecycle';
+import { complianceHandlers } from './modules/compliance';
+import { systemOpsHandlers } from './modules/systemOps';
+import { twoFactorHandlers } from './modules/twoFactor';
 
 const json = (body: unknown) => HttpResponse.json(body as Parameters<typeof HttpResponse.json>[0]);
 
@@ -636,6 +645,15 @@ export const handlers = [
   ...termDepositHandlers,
   ...membershipApplicationHandlers,
   ...generalAssemblyHandlers,
+  ...expenseHandlers,
+  ...bankReconHandlers,
+  ...glRuleHandlers,
+  ...feeWaiverHandlers,
+  ...notificationTemplateHandlers,
+  ...loanLifecycleHandlers,
+  ...complianceHandlers,
+  ...systemOpsHandlers,
+  ...twoFactorHandlers,
 ];
 
 export const reportRows = {

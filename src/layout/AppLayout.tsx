@@ -32,10 +32,62 @@ import {
   IdcardOutlined,
   LockOutlined,
   TrophyOutlined,
+  WalletOutlined,
+  ReconciliationOutlined,
+  PartitionOutlined,
+  PercentageOutlined,
+  MailOutlined,
+  ApartmentOutlined,
+  SafetyOutlined,
+  PrinterOutlined,
+  CloudServerOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import type { Role } from '../types';
 import { users } from '../mocks/data';
+import { useI18n } from '../i18n/I18nContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+
+const navKeyByName: Record<string, string> = {
+  Dashboard: 'nav.dashboard',
+  Members: 'nav.members',
+  'Savings & Deposits': 'nav.savings',
+  Loans: 'nav.loans',
+  'Accounting & GL': 'nav.accounting',
+  'Employer Check-Off': 'nav.checkoff',
+  'Collateral & Assets': 'nav.collateral',
+  'Shares & Dividends': 'nav.shares',
+  'Cash & Branch Ops': 'nav.cashops',
+  'Term Deposits': 'nav.termDeposits',
+  'Membership Applications': 'nav.membership',
+  'Day Control & EOD': 'nav.dayControl',
+  'Fee Waivers': 'nav.feeWaivers',
+  Approvals: 'nav.approvals',
+  Registration: 'nav.registration',
+  Payments: 'nav.payments',
+  Products: 'nav.products',
+  'Loan Ops Admin': 'nav.loanAdmin',
+  'Data Migration': 'nav.dataMigration',
+  Reports: 'nav.reports',
+  Finance: 'nav.finance',
+  'General Assembly': 'nav.generalAssembly',
+  Expenses: 'nav.expenses',
+  'Bank Reconciliation': 'nav.bankRecon',
+  'GL Posting Rules': 'nav.glRules',
+  'Notification Templates': 'nav.notificationTemplates',
+  Auditing: 'nav.auditing',
+  Admin: 'nav.admin',
+  'Loan Lifecycle': 'nav.loanLifecycle',
+  Compliance: 'nav.compliance',
+  Printables: 'nav.printables',
+  'System Operations': 'nav.systemOps',
+};
+
+const groupKeyByName: Record<string, string> = {
+  'Main Menu': 'nav.group.main',
+  Operations: 'nav.group.operations',
+  Governance: 'nav.group.governance',
+};
 
 interface MenuItem {
   path: string;
@@ -59,6 +111,8 @@ const menu: MenuItem[] = [
 
   { path: '/membership-applications', name: 'Membership Applications', icon: <IdcardOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER'], group: 'Operations' },
   { path: '/day-control', name: 'Day Control & EOD', icon: <FieldTimeOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'], group: 'Operations' },
+  { path: '/fee-waivers', name: 'Fee Waivers', icon: <PercentageOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'], group: 'Operations' },
+  { path: '/loan-lifecycle', name: 'Loan Lifecycle', icon: <ApartmentOutlined />, roles: ['ADMIN', 'MANAGER', 'CREDIT_OFFICER', 'ACCOUNTANT'], group: 'Operations' },
   { path: '/approvals', name: 'Approvals', icon: <CheckSquareOutlined />, roles: ['ADMIN', 'MANAGER'], group: 'Operations' },
   { path: '/registration', name: 'Registration', icon: <SolutionOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'ACCOUNTANT'], group: 'Operations' },
   { path: '/payments', name: 'Payments', icon: <TransactionOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'ACCOUNTANT'], group: 'Operations' },
@@ -69,6 +123,13 @@ const menu: MenuItem[] = [
   { path: '/reports', name: 'Reports', icon: <BarChartOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'], group: 'Governance' },
   { path: '/finance', name: 'Finance', icon: <CalculatorOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'], group: 'Governance' },
   { path: '/general-assembly', name: 'General Assembly', icon: <TrophyOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'], group: 'Governance' },
+  { path: '/expenses', name: 'Expenses', icon: <WalletOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'], group: 'Governance' },
+  { path: '/bank-reconciliation', name: 'Bank Reconciliation', icon: <ReconciliationOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'], group: 'Governance' },
+  { path: '/gl-rules', name: 'GL Posting Rules', icon: <PartitionOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'], group: 'Governance' },
+  { path: '/notification-templates', name: 'Notification Templates', icon: <MailOutlined />, roles: ['ADMIN', 'MANAGER'], group: 'Governance' },
+  { path: '/compliance', name: 'Compliance', icon: <SafetyOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'], group: 'Governance' },
+  { path: '/printables', name: 'Printables', icon: <PrinterOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER', 'CREDIT_OFFICER', 'ACCOUNTANT', 'AUDITOR'], group: 'Governance' },
+  { path: '/system-ops', name: 'System Operations', icon: <CloudServerOutlined />, roles: ['ADMIN'], group: 'Governance' },
   { path: '/auditing', name: 'Auditing', icon: <AuditOutlined />, roles: ['ADMIN', 'AUDITOR'], group: 'Governance' },
   { path: '/admin', name: 'Admin', icon: <SettingOutlined />, roles: ['ADMIN', 'MANAGER'], group: 'Governance' },
 ];
@@ -89,6 +150,7 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const { t } = useI18n();
 
   const menuItems = useMemo<MenuProps['items']>(() => {
     const visible = menu.filter((m) => user && m.roles.includes(user.role));
@@ -96,13 +158,17 @@ export default function AppLayout() {
       .map((group) => ({
         key: group,
         type: 'group' as const,
-        label: group,
+        label: t(groupKeyByName[group] ?? group),
         children: visible
           .filter((m) => m.group === group)
-          .map((m) => ({ key: m.path, icon: m.icon, label: m.name })),
+          .map((m) => ({
+            key: m.path,
+            icon: m.icon,
+            label: t(navKeyByName[m.name] ?? m.name),
+          })),
       }))
       .filter((g) => g.children.length > 0);
-  }, [user]);
+  }, [user, t]);
 
   const selectedKeys = useMemo(() => {
     const paths = menu.map((m) => m.path).sort((a, b) => b.length - a.length);
@@ -134,7 +200,7 @@ export default function AppLayout() {
           label: (
             <Space>
               <UserSwitchOutlined />
-              Switch to {u.title}
+              {t('common.switchRole')} {u.title}
               <Tag color={roleTagColor[u.role]} style={{ marginLeft: 4 }}>
                 {u.role}
               </Tag>
@@ -147,7 +213,7 @@ export default function AppLayout() {
         label: (
           <Space>
             <LogoutOutlined />
-            Sign out
+            {t('common.signOut')}
           </Space>
         ),
         danger: true,
@@ -279,7 +345,7 @@ export default function AppLayout() {
           <Input
             allowClear
             prefix={<SearchOutlined style={{ color: '#98a2b3' }} />}
-            placeholder="Search anything here..."
+            placeholder={t('common.searchPlaceholder')}
             style={{ width: 320, borderRadius: 10, background: '#f8fafc' }}
             onPressEnter={(e) => {
               const q = (e.target as HTMLInputElement).value.trim();
@@ -287,6 +353,7 @@ export default function AppLayout() {
             }}
           />
           <div className="cbs-header-spacer" />
+          <LanguageSwitcher />
           <QuestionCircleOutlined className="cbs-header-icon" />
           <Badge dot offset={[-1, 2]}>
             <BellOutlined className="cbs-header-icon" />

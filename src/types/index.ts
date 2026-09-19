@@ -687,3 +687,233 @@ export interface GaResolution {
   executedAt?: string;
   note?: string;
 }
+
+// ============================================================
+// Phase 3 parity modules
+// ============================================================
+
+export interface ExpenseCategory {
+  id: string;
+  code: string;
+  name: string;
+  glAccountCode: string;
+  status: 'Pending' | 'Verified';
+}
+
+export interface ExpenseEntry {
+  id: string;
+  date: string;
+  categoryId: string;
+  categoryName: string;
+  description: string;
+  amount: number;
+  paymentMode: string;
+  glAccountCode: string;
+  postedBy: string;
+  status: 'Posted' | 'Reversed';
+}
+
+export interface BankAccount {
+  id: string;
+  code: string;
+  bankName: string;
+  accountNo: string;
+  branch: string;
+  currencyCode: string;
+  bookBalance: number;
+  status: 'Active' | 'Closed';
+}
+
+export type BankTxnReconStatus = 'Unmatched' | 'Matched' | 'Excluded';
+
+export interface BankTransaction {
+  id: string;
+  bankAccountId: string;
+  date: string;
+  ref: string;
+  description: string;
+  type: 'Deposit' | 'Withdrawal';
+  amount: number;
+  reconStatus: BankTxnReconStatus;
+}
+
+export interface BankReconSession {
+  id: string;
+  bankAccountId: string;
+  bankAccountLabel: string;
+  statementDate: string;
+  statementBalance: number;
+  bookBalance: number;
+  difference: number;
+  status: 'Open' | 'Completed';
+  matchedCount: number;
+  unmatchedCount: number;
+  startedBy: string;
+  startedAt: string;
+  completedAt?: string;
+}
+
+export interface GlPostingRule {
+  id: string;
+  event: string;
+  description: string;
+  productType: 'Savings' | 'Loan' | 'Share' | 'Fee' | 'Treasury' | 'Expense';
+  debitAccountCode: string;
+  creditAccountCode: string;
+  status: 'Active' | 'Inactive';
+}
+
+export interface FeeWaiver {
+  id: string;
+  memberId: string;
+  memberName: string;
+  chargeCode: string;
+  chargeName: string;
+  dateFrom: string;
+  dateTo: string;
+  amount: number;
+  reason: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  requestedBy: string;
+  approvedBy?: string;
+  requestedAt: string;
+  decidedAt?: string;
+}
+
+export interface NotificationTemplate {
+  id: string;
+  code: string;
+  name: string;
+  channel: 'Email' | 'SMS';
+  event: string;
+  subject?: string;
+  body: string;
+  enabled: boolean;
+  updatedAt: string;
+}
+
+export interface GatewaySettings {
+  smtpHost: string;
+  smtpPort: number;
+  smtpUser: string;
+  smtpSecure: boolean;
+  smsProvider: string;
+  smsSenderId: string;
+  updatedAt: string;
+}
+
+// ============================================================
+// Phase 4 parity modules
+// ============================================================
+
+export interface LoanRestructure {
+  id: string;
+  loanId: string;
+  loanNo: string;
+  memberName: string;
+  oldTermMonths: number;
+  newTermMonths: number;
+  oldRatePct: number;
+  newRatePct: number;
+  outstanding: number;
+  reason: string;
+  fee: number;
+  status: 'Pending' | 'Approved' | 'Executed' | 'Rejected';
+  requestedBy: string;
+  approvedBy?: string;
+  requestedAt: string;
+}
+
+export interface LoanWriteOff {
+  id: string;
+  loanId: string;
+  loanNo: string;
+  memberName: string;
+  balance: number;
+  type: 'Partial' | 'Full';
+  reason: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  requestedBy: string;
+  approvedBy?: string;
+  requestedAt: string;
+}
+
+export interface LoanRecovery {
+  id: string;
+  loanId: string;
+  loanNo: string;
+  memberName: string;
+  date: string;
+  amount: number;
+  source: 'Cash' | 'Savings';
+  recordedBy: string;
+}
+
+export interface ProvisionPolicyRow {
+  id: string;
+  classification: 'Pass' | 'Special Mention' | 'Substandard' | 'Doubtful' | 'Loss';
+  provisionPct: number;
+}
+
+export interface ProvisionRun {
+  id: string;
+  businessDate: string;
+  loansProcessed: number;
+  totalProvision: number;
+  runAt: string;
+  runBy: string;
+}
+
+export interface LoanAutoDebitRow {
+  id: string;
+  loanNo: string;
+  memberName: string;
+  installment: number;
+  savingsBalance: number;
+  status: 'Scheduled' | 'Debited' | 'Insufficient' | 'Skipped';
+}
+
+export interface LiquidityRow {
+  label: string;
+  value: number;
+  requirement: number;
+  status: 'Adequate' | 'Below';
+}
+
+export interface LargeExposure {
+  id: string;
+  memberId: string;
+  memberName: string;
+  loanNo: string;
+  facility: number;
+  exposure: number;
+  exposurePct: number;
+  status: 'Within' | 'Breach';
+}
+
+export interface ProfitAllocationRow {
+  label: string;
+  pct: number;
+  amount: number;
+}
+
+export interface CompliancePolicy {
+  liquidityMinPct: number;
+  exposureMaxPct: number;
+  updatedAt: string;
+}
+
+export interface CashFlowRow {
+  label: string;
+  inflow: number;
+  outflow: number;
+}
+
+export interface BackupRecord {
+  id: string;
+  fileName: string;
+  sizeKb: number;
+  createdAt: string;
+  createdBy: string;
+  kind: 'Manual' | 'Scheduled';
+}

@@ -31,6 +31,15 @@ import DayControl from './DayControl';
 import TermDeposits from './TermDeposits';
 import MembershipApplications from './MembershipApplications';
 import GeneralAssembly from './GeneralAssembly';
+import Expenses from './Expenses';
+import BankReconciliation from './BankReconciliation';
+import GlPostingRules from './GlPostingRules';
+import FeeWaivers from './FeeWaivers';
+import NotificationTemplates from './NotificationTemplates';
+import LoanLifecycle from './LoanLifecycle';
+import Compliance from './Compliance';
+import Printables from './Printables';
+import SystemOps from './SystemOps';
 
 const server = setupServer(...handlers);
 const pending: Array<() => void> = [];
@@ -109,6 +118,15 @@ describe('All pages render + load data via API (mock-backed, no browser automati
     ['TermDeposits', <TermDeposits />, 'Term Deposits'],
     ['MembershipApplications', <MembershipApplications />, 'Membership Applications'],
     ['GeneralAssembly', <GeneralAssembly />, 'General Assembly'],
+    ['Expenses', <Expenses />, 'Expenses'],
+    ['BankReconciliation', <BankReconciliation />, 'Bank Reconciliation'],
+    ['GlPostingRules', <GlPostingRules />, 'GL Posting Rules'],
+    ['FeeWaivers', <FeeWaivers />, 'Fee Waivers'],
+    ['NotificationTemplates', <NotificationTemplates />, 'Notification Templates'],
+    ['LoanLifecycle', <LoanLifecycle />, 'Loan Lifecycle'],
+    ['Compliance', <Compliance />, 'Compliance'],
+    ['Printables', <Printables />, 'Printables'],
+    ['SystemOps', <SystemOps />, 'System Operations'],
   ];
 
   for (const [name, element, expectedText] of cases) {

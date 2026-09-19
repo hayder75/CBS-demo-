@@ -28,6 +28,15 @@ import DayControl from './pages/DayControl';
 import TermDeposits from './pages/TermDeposits';
 import MembershipApplications from './pages/MembershipApplications';
 import GeneralAssembly from './pages/GeneralAssembly';
+import Expenses from './pages/Expenses';
+import BankReconciliation from './pages/BankReconciliation';
+import GlPostingRules from './pages/GlPostingRules';
+import FeeWaivers from './pages/FeeWaivers';
+import NotificationTemplates from './pages/NotificationTemplates';
+import LoanLifecycle from './pages/LoanLifecycle';
+import Compliance from './pages/Compliance';
+import Printables from './pages/Printables';
+import SystemOps from './pages/SystemOps';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -78,6 +87,15 @@ export default function App() {
           <Route path="term-deposits" element={<TermDeposits />} />
           <Route path="membership-applications" element={<MembershipApplications />} />
           <Route path="general-assembly" element={<GeneralAssembly />} />
+          <Route path="expenses" element={<Expenses />} />
+          <Route path="bank-reconciliation" element={<BankReconciliation />} />
+          <Route path="gl-rules" element={<GlPostingRules />} />
+          <Route path="fee-waivers" element={<FeeWaivers />} />
+          <Route path="notification-templates" element={<NotificationTemplates />} />
+          <Route path="loan-lifecycle" element={<LoanLifecycle />} />
+          <Route path="compliance" element={<Compliance />} />
+          <Route path="printables" element={<Printables />} />
+          <Route path="system-ops" element={<SystemOps />} />
         </Route>
       </Routes>
     </MembersProvider>

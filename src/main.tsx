@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import enUS from 'antd/locale/en_US';
 import { AuthProvider } from './context/AuthContext';
+import { I18nProvider } from './i18n/I18nContext';
 import App from './App';
 import { cbsTheme } from './theme';
 import './index.css';
@@ -22,11 +23,13 @@ enableMocking().then(() => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <ConfigProvider locale={enUS} theme={cbsTheme}>
-        <BrowserRouter>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </BrowserRouter>
+        <I18nProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </BrowserRouter>
+        </I18nProvider>
       </ConfigProvider>
     </StrictMode>,
   );
