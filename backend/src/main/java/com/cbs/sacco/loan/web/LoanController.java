@@ -146,6 +146,29 @@ public class LoanController {
         return loanService.amortization(id);
     }
 
+    /** AI-assisted repayment prediction / portfolio risk view. */
+    @GetMapping("/repayment-prediction")
+    public List<Map<String, Object>> repaymentPrediction() {
+        return loanRepository.findAll().stream()
+                .filter(l -> l.getBalance() != null && l.getBalance().signum() > 0)
+                .map(l -> {
+                    java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+                    m.put("loanNo", l.getLoanNo());
+                    m.put("member", l.getMemberId() != null
+                            ? memberRepository.findById(l.getMemberId()).map(mb -> mb.getFullName())
+                                .orElse("Member #" + l.getMemberId())
+                            : "—");
+                    m.put("balance", l.getBalance());
+                    m.put("nextDueDate", l.getNextDueDate() == null ? "" : l.getNextDueDate().toString());
+                    m.put("overdueDays", l.getOverdueDays() == null ? 0 : l.getOverdueDays());
+                    m.put("aiScore", l.getAiScore() == null ? 0 : l.getAiScore());
+                    m.put("aiPdPct", l.getAiPdPct() == null ? BigDecimal.ZERO : l.getAiPdPct());
+                    m.put("guidance", l.getAiGuidance() == null ? "" : l.getAiGuidance());
+                    return m;
+                })
+                .toList();
+    }
+
     private static Long asLong(Map<String, Object> body, String key) {
         Object v = body.get(key);
         if (v == null) return null;

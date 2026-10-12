@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -40,5 +41,10 @@ public class AuthController {
     @GetMapping("/users")
     public List<UserDto> users() {
         return authService.listUsers();
+    }
+
+    @PostMapping("/users")
+    public UserDto createUser(@RequestBody Map<String, Object> body) {
+        return authService.createUser(body);
     }
 }

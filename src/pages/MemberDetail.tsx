@@ -46,6 +46,10 @@ const accountStatusColor: Record<SavingsAccount['status'], string> = {
   Pending: 'gold',
   Dormant: 'orange',
   Closed: 'default',
+  Inactive: 'default',
+  CreditSuspension: 'red',
+  DebitSuspension: 'red',
+  UnderSuspension: 'red',
 };
 
 const typeTag: Record<SavingsTransaction['type'], string> = {

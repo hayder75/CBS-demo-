@@ -70,9 +70,25 @@ class ApiContractIT extends BaseApiIT {
                 "faydaId", "kebele", "woreda", "city", "occupation", "employer", "status",
                 "joinDate", "photoColor", "shareBalance", "savingsBalance", "loanOutstanding",
                 "nextOfKin", "beneficiaries");
-        JsonNode m = arr.get(0);
-        assertHasFields(m.get("nextOfKin").get(0), "name", "relation", "phone");
-        assertHasFields(m.get("beneficiaries").get(0), "name", "relation", "percent", "phone");
+        JsonNode withKin = null;
+        for (JsonNode cand : arr) {
+            if (cand.get("nextOfKin").size() > 0) {
+                withKin = cand;
+                break;
+            }
+        }
+        assertTrue(withKin != null, "expected at least one member with nextOfKin");
+        assertHasFields(withKin.get("nextOfKin").get(0), "name", "relation", "phone");
+
+        JsonNode withBen = null;
+        for (JsonNode cand : arr) {
+            if (cand.get("beneficiaries").size() > 0) {
+                withBen = cand;
+                break;
+            }
+        }
+        assertTrue(withBen != null, "expected at least one member with beneficiaries");
+        assertHasFields(withBen.get("beneficiaries").get(0), "name", "relation", "percent", "phone");
     }
 
     @Test

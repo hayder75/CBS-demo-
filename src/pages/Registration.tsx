@@ -10,6 +10,7 @@ import {
   Row,
   Select,
   Space,
+  Switch,
   Table,
   Tabs,
   Tag,
@@ -44,6 +45,10 @@ export default function Registration() {
   const [members, setMembers] = useState<Member[]>([]);
   const [savingsProducts, setSavingsProducts] = useState<SavingsProduct[]>([]);
   const [shareCategories, setShareCategories] = useState<ShareCategory[]>([]);
+  const [documents, setDocuments] = useState<{ id: string | number; code: string; name: string; category: string; mandatory: boolean; retentionYears: number; status: string }[]>([]);
+  const [attachments, setAttachments] = useState<{ id: string | number; documentTypeId: string | number; entityType: string; entityId: string; fileName: string; mimeType: string; sizeKb: number; uploadedBy?: string; uploadedAt?: string; status: string }[]>([]);
+  const [attEntityType, setAttEntityType] = useState('Customer');
+  const [attEntityId, setAttEntityId] = useState('');
 
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -58,6 +63,34 @@ export default function Registration() {
     setCurrencies(await api<Currency[]>('/api/currencies').catch(() => []));
     setSavingsProducts(await api<SavingsProduct[]>('/api/savings/products').catch(() => []));
     setShareCategories(await api<ShareCategory[]>('/api/share-categories').catch(() => []));
+    setDocuments(await api<{ id: string | number; code: string; name: string; category: string; mandatory: boolean; retentionYears: number; status: string }[]>('/api/documents').catch(() => []));
+  };
+
+  const loadAttachments = async () => {
+    if (!attEntityId) { setAttachments([]); return; }
+    setAttachments(await api<{ id: string | number; documentTypeId: string | number; entityType: string; entityId: string; fileName: string; mimeType: string; sizeKb: number; uploadedBy?: string; uploadedAt?: string; status: string }[]>(
+      `/api/documents/attachments?entityType=${attEntityType}&entityId=${encodeURIComponent(attEntityId)}`).catch(() => []));
+  };
+
+  const docTypeOf = (id: string | number) => documents.find((d) => String(d.id) === String(id))?.name ?? String(id);
+
+  const submitAttach = async () => {
+    const values = await form.validateFields();
+    setSaving(true);
+    try {
+      await api('/api/documents/attachments', {
+        method: 'POST',
+        body: JSON.stringify({ ...values, entityType: attEntityType, entityId: attEntityId }),
+      });
+      setOpen(null);
+      form.resetFields();
+      message.success('Document attached');
+      await loadAttachments();
+    } catch (e) {
+      message.error((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const memberOf = (v: string) =>
@@ -103,6 +136,10 @@ export default function Registration() {
         <Space>
           {r.status === 'Pending' && <Button size="small" type="primary" onClick={() => verify(`/api/accounts/${r.id}/verify`)}>Verify</Button>}
           {r.status === 'Active' && <Button size="small" onClick={() => verify(`/api/accounts/${r.id}/freeze`)}>Freeze</Button>}
+          {r.status === 'Active' && <Button size="small" danger onClick={() => verify(`/api/accounts/${r.id}/suspend?kind=Debit`)}>Suspend</Button>}
+          {['CreditSuspension', 'DebitSuspension', 'UnderSuspension', 'Inactive'].includes(r.status) && (
+            <Button size="small" type="primary" onClick={() => verify(`/api/accounts/${r.id}/reactivate`)}>Reactivate</Button>
+          )}
         </Space>
       ),
     },
@@ -279,6 +316,57 @@ export default function Registration() {
               </Card>
             ),
           },
+          {
+            key: 'documents',
+            label: 'Documents',
+            children: (
+              <Card title="Document Types" extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen('document')}>New Document</Button>}>
+                <Table
+                  rowKey="id"
+                  dataSource={documents}
+                  pagination={false}
+                  columns={[
+                    { title: 'Code', dataIndex: 'code', width: 130 },
+                    { title: 'Document', dataIndex: 'name' },
+                    { title: 'Category', dataIndex: 'category', width: 120, render: (c: string) => <Tag>{c}</Tag> },
+                    { title: 'Mandatory', dataIndex: 'mandatory', width: 110, render: (m: boolean) => (m ? <Tag color="red">Required</Tag> : <Tag>Optional</Tag>) },
+                    { title: 'Retention (yrs)', dataIndex: 'retentionYears', width: 130, align: 'right' as const },
+                    { title: 'Status', dataIndex: 'status', width: 100, render: statusTag },
+                    { title: 'Actions', render: (_: unknown, r: { id: string | number; status: string }) => r.status === 'Pending' ? <Button size="small" type="primary" onClick={() => verify(`/api/documents/${r.id}/verify`)}>Verify</Button> : null },
+                  ]}
+                />
+              </Card>
+            ),
+          },
+          {
+            key: 'attachments',
+            label: 'Attachments',
+            children: (
+              <Card
+                title="Document Attachments"
+                extra={<Button type="primary" icon={<PlusOutlined />} disabled={!attEntityId} onClick={() => setOpen('attachment')}>Attach Document</Button>}
+              >
+                <Space wrap style={{ marginBottom: 12 }}>
+                  <Select value={attEntityType} onChange={setAttEntityType} style={{ width: 150 }} options={['Customer', 'Account', 'Loan', 'Collateral'].map((e) => ({ label: e, value: e }))} />
+                  <Input placeholder="Entity ID e.g. MEM-01001" value={attEntityId} onChange={(e) => setAttEntityId(e.target.value)} style={{ width: 240 }} />
+                  <Button onClick={loadAttachments}>Load</Button>
+                </Space>
+                <Table
+                  rowKey="id"
+                  dataSource={attachments}
+                  pagination={false}
+                  columns={[
+                    { title: 'Document', dataIndex: 'documentTypeId', render: docTypeOf },
+                    { title: 'File', dataIndex: 'fileName' },
+                    { title: 'Size (KB)', dataIndex: 'sizeKb', align: 'right' as const },
+                    { title: 'Uploaded By', dataIndex: 'uploadedBy', width: 140 },
+                    { title: 'Status', dataIndex: 'status', width: 100, render: statusTag },
+                    { title: 'Actions', width: 110, render: (_: unknown, r: { id: string | number }) => <Button size="small" danger onClick={async () => { await api(`/api/documents/attachments/${r.id}`, { method: 'DELETE' }); message.success('Removed'); await loadAttachments(); }}>Remove</Button> },
+                  ]}
+                />
+              </Card>
+            ),
+          },
         ]}
       />
 
@@ -340,6 +428,45 @@ export default function Registration() {
             <Col span={12}><Form.Item label="Cents Label" name="centsLabel"><Input /></Form.Item></Col>
             <Col span={12}><Form.Item label="Exchange Rate" name="exchangeRate" initialValue={1}><InputNumber style={{ width: '100%' }} min={0.000001} step={0.01} /></Form.Item></Col>
           </Row>
+        </Form>
+      </Modal>
+
+      {/* Document modal */}
+      <Modal title="New Document Type" open={open === 'document'} onCancel={() => setOpen(null)} onOk={() => submit('/api/documents')} okText="Create Document" confirmLoading={saving}>
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Row gutter={16}>
+            <Col span={12}><Form.Item label="Code" name="code" rules={[{ required: true }]}><Input placeholder="DOC-NEW" /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Name" name="name" rules={[{ required: true }]}><Input /></Form.Item></Col>
+            <Col span={12}>
+              <Form.Item label="Category" name="category" initialValue="Customer">
+                <Select options={['Customer', 'Account', 'Loan', 'Collateral'].map((c) => ({ label: c, value: c }))} />
+              </Form.Item>
+            </Col>
+            <Col span={12}><Form.Item label="Retention (years)" name="retentionYears" initialValue={5}><InputNumber style={{ width: '100%' }} min={1} /></Form.Item></Col>
+            <Col span={24}>
+              <Form.Item label="Mandatory" name="mandatory" valuePropName="checked" initialValue={false}>
+                <Switch />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+
+      {/* Attachment modal */}
+      <Modal title="Attach Document" open={open === 'attachment'} onCancel={() => setOpen(null)} onOk={submitAttach} okText="Attach" confirmLoading={saving}>
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item label="Entity">
+            <Input value={`${attEntityType} · ${attEntityId}`} disabled />
+          </Form.Item>
+          <Form.Item label="Document Type" name="documentTypeId" rules={[{ required: true }]}>
+            <Select options={documents.map((d) => ({ label: `${d.code} — ${d.name}`, value: Number(d.id) }))} />
+          </Form.Item>
+          <Form.Item label="File Name" name="fileName" rules={[{ required: true }]}>
+            <Input placeholder="e.g. id-copy.pdf" />
+          </Form.Item>
+          <Form.Item label="Size (KB)" name="sizeKb" initialValue={0}>
+            <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
         </Form>
       </Modal>
     </ProCard>

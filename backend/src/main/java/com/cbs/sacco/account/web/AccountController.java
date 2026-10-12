@@ -69,6 +69,32 @@ public class AccountController {
         return repo.save(a);
     }
 
+    @PostMapping("/{id}/suspend")
+    public SavingsAccount suspend(@PathVariable Long id,
+                                  @RequestParam(name = "kind", defaultValue = "Under") String kind) {
+        SavingsAccount a = get(id);
+        a.setStatus(switch (kind) {
+            case "Credit" -> "CreditSuspension";
+            case "Debit" -> "DebitSuspension";
+            default -> "UnderSuspension";
+        });
+        return repo.save(a);
+    }
+
+    @PostMapping("/{id}/inactivate")
+    public SavingsAccount inactivate(@PathVariable Long id) {
+        SavingsAccount a = get(id);
+        a.setStatus("Inactive");
+        return repo.save(a);
+    }
+
+    @PostMapping("/{id}/reactivate")
+    public SavingsAccount reactivate(@PathVariable Long id) {
+        SavingsAccount a = get(id);
+        a.setStatus("Active");
+        return repo.save(a);
+    }
+
     @PostMapping("/{id}/reserve")
     public String reserve(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         return "ok"; // reservations handled by /api/reservations

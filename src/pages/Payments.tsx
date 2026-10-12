@@ -40,10 +40,20 @@ const statusTag = (s: string) => (
 
 const kindTag = (k: string) => <Tag>{k}</Tag>;
 
+interface AuthorizeCategory {
+  key: string;
+  name: string;
+  description: string;
+  kinds: string[];
+  pending: number;
+}
+
 export default function Payments() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [modes, setModes] = useState<PaymentMode[]>([]);
   const [accounts, setAccounts] = useState<SavingsAccount[]>([]);
+  const [categories, setCategories] = useState<AuthorizeCategory[]>([]);
+  const [catKey, setCatKey] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
@@ -55,6 +65,7 @@ export default function Payments() {
     setPayments(await api<Payment[]>('/api/payments').catch(() => []));
     setModes(await api<PaymentMode[]>('/api/payment-modes').catch(() => []));
     setAccounts(await api<SavingsAccount[]>('/api/accounts').catch(() => []));
+    setCategories(await api<AuthorizeCategory[]>('/api/payments/authorize/categories').catch(() => []));
   };
 
   useEffect(() => { load(); }, []);
@@ -251,6 +262,33 @@ export default function Payments() {
                     </Space>
                   </Card>
                 </Col>
+                <Col xs={24} sm={8}>
+                  <Card>
+                    <Space direction="vertical" size={12}>
+                      <Typography.Text strong style={{ color: '#eb2f96' }}>Back Date Posting</Typography.Text>
+                      <Typography.Text type="secondary">Post a transaction with a prior business date.</Typography.Text>
+                      <Button icon={<ClockCircleOutlined />} onClick={() => setOpen('BACKDATE')}>Back-Date</Button>
+                    </Space>
+                  </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                  <Card>
+                    <Space direction="vertical" size={12}>
+                      <Typography.Text strong style={{ color: '#2f54eb' }}>Payment Voucher</Typography.Text>
+                      <Typography.Text type="secondary">Outgoing payment settled through the GL.</Typography.Text>
+                      <Button icon={<DollarOutlined />} onClick={() => setOpen('PAYMENT_VOUCHER')}>Payment Voucher</Button>
+                    </Space>
+                  </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                  <Card>
+                    <Space direction="vertical" size={12}>
+                      <Typography.Text strong style={{ color: '#faad14' }}>Receipt Voucher</Typography.Text>
+                      <Typography.Text type="secondary">Incoming receipt posted to the GL.</Typography.Text>
+                      <Button icon={<DollarOutlined />} onClick={() => setOpen('RECEIPT_VOUCHER')}>Receipt Voucher</Button>
+                    </Space>
+                  </Card>
+                </Col>
               </Row>
             ),
           },
@@ -264,17 +302,74 @@ export default function Payments() {
             ),
           },
           {
-            key: 'authorization',
-            label: 'Authorization',
+            key: 'authorize',
+            label: 'Authorize Trxns',
             children: (
-              <Card title="Authorization Queue — Checker">
+              <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                <Row gutter={[12, 12]}>
+                  {categories.map((c) => (
+                    <Col xs={24} sm={12} lg={8} xl={6} key={c.key}>
+                      <Card
+                        hoverable
+                        size="small"
+                        onClick={() => setCatKey(c.key)}
+                        style={{
+                          borderColor: catKey === c.key ? colors.primary : undefined,
+                          background: catKey === c.key ? colors.primarySoft : undefined,
+                        }}
+                      >
+                        <Space direction="vertical" size={2} style={{ width: '100%' }}>
+                          <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                            <Typography.Text strong style={{ fontSize: 13 }}>{c.name}</Typography.Text>
+                            <Tag color={c.pending > 0 ? 'gold' : 'default'}>{c.pending}</Tag>
+                          </Space>
+                          <Typography.Text type="secondary" style={{ fontSize: 11 }}>{c.description}</Typography.Text>
+                        </Space>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+                <Card title={catKey ? `Pending — ${categories.find((c) => c.key === catKey)?.name}` : 'Select a category above'}>
+                  <Table
+                    rowKey="id"
+                    dataSource={payments.filter((p) => p.status === 'Pending' && (categories.find((c) => c.key === catKey)?.kinds ?? []).includes(p.kind))}
+                    pagination={false}
+                    locale={{ emptyText: catKey ? 'No pending items in this category' : 'Choose a category' }}
+                    columns={[
+                      { title: 'No', dataIndex: 'paymentNo', width: 130 },
+                      { title: 'Kind', dataIndex: 'kind', width: 140, render: kindTag },
+                      { title: 'From', dataIndex: 'fromRef' },
+                      { title: 'To', dataIndex: 'toRef' },
+                      { title: 'Amount', dataIndex: 'amount', align: 'right' as const, render: (v: number) => fmtETB(v) },
+                      { title: 'Maker', dataIndex: 'createdBy', width: 120 },
+                      {
+                        title: 'Action',
+                        width: 160,
+                        render: (_: unknown, r: Payment) => (
+                          <Space>
+                            <Button size="small" type="primary" icon={<CheckCircleOutlined />} onClick={() => act(`/api/payments/${r.id}/authorize`, 'Authorized')}>Authorize</Button>
+                            <Button size="small" danger icon={<CloseCircleOutlined />} onClick={() => act(`/api/payments/${r.id}/reject`, 'Rejected')}>Reject</Button>
+                          </Space>
+                        ),
+                      },
+                    ]}
+                  />
+                </Card>
+              </Space>
+            ),
+          },
+          {
+            key: 'pending',
+            label: 'Pending Transactions',
+            children: (
+              <Card title="Pending Transactions">
                 <Table
                   rowKey="id"
                   dataSource={pending}
                   pagination={false}
                   columns={[
-                    { title: 'No', dataIndex: 'paymentNo', width: 120 },
-                    { title: 'Kind', dataIndex: 'kind', width: 130, render: kindTag },
+                    { title: 'No', dataIndex: 'paymentNo', width: 130 },
+                    { title: 'Kind', dataIndex: 'kind', width: 140, render: kindTag },
                     { title: 'Account', dataIndex: 'accountId', width: 140, render: accountOf },
                     { title: 'From', dataIndex: 'fromRef' },
                     { title: 'To', dataIndex: 'toRef' },
@@ -366,6 +461,44 @@ export default function Payments() {
           <Space direction="vertical" style={{ width: '100%' }} size={12}>
             <Form.Item label="Amount (ETB)" name="amount" rules={[{ required: true }]}><CurrencyInput style={{ width: '100%' }} min={1} /></Form.Item>
             <Form.Item label="Other Branch GL / Home Branch GL" name="description"><Input placeholder="e.g. credit other branch claim (dr self)" /></Form.Item>
+          </Space>
+        </Form>
+      </Modal>
+
+      {/* Back-date posting modal */}
+      <Modal title="Back Date Posting" open={open === 'BACKDATE'} onCancel={() => setOpen(null)} onOk={() => submit('BACKDATE')} okText="Post Back-Dated" confirmLoading={saving}>
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Space direction="vertical" style={{ width: '100%' }} size={12}>
+            {accountSelect}
+            {modeField}
+            {amountField}
+            <Form.Item label="Value Date" name="fromRef" rules={[{ required: true }]}><Input placeholder="YYYY-MM-DD (prior business date)" /></Form.Item>
+            <Form.Item label="Reason" name="description" rules={[{ required: true }]}><Input placeholder="Reason for back-dated posting" /></Form.Item>
+            <Typography.Text type="secondary">Back-dated postings alter historical balances and require authorization.</Typography.Text>
+          </Space>
+        </Form>
+      </Modal>
+
+      {/* Payment voucher modal */}
+      <Modal title="Payment Voucher" open={open === 'PAYMENT_VOUCHER'} onCancel={() => setOpen(null)} onOk={() => submit('PAYMENT_VOUCHER')} okText="Post Voucher" confirmLoading={saving}>
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Space direction="vertical" style={{ width: '100%' }} size={12}>
+            {amountField}
+            {modeField}
+            <Form.Item label="Payee / GL Account" name="toRef"><Input placeholder="e.g. GL 3000 Staff Salaries" /></Form.Item>
+            <Form.Item label="Description" name="description" rules={[{ required: true }]}><Input placeholder="e.g. payment to supplier" /></Form.Item>
+          </Space>
+        </Form>
+      </Modal>
+
+      {/* Receipt voucher modal */}
+      <Modal title="Receipt Voucher" open={open === 'RECEIPT_VOUCHER'} onCancel={() => setOpen(null)} onOk={() => submit('RECEIPT_VOUCHER')} okText="Post Receipt" confirmLoading={saving}>
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Space direction="vertical" style={{ width: '100%' }} size={12}>
+            {amountField}
+            {modeField}
+            <Form.Item label="Source / GL Account" name="fromRef"><Input placeholder="e.g. collections, sales, sundry" /></Form.Item>
+            <Form.Item label="Description" name="description" rules={[{ required: true }]}><Input placeholder="e.g. sundry income receipt" /></Form.Item>
           </Space>
         </Form>
       </Modal>

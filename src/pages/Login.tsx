@@ -191,7 +191,7 @@ export default function Login() {
                 <BankOutlined />
               </div>
               <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em' }}>
-                CBS General
+                Anchor CBS
               </span>
             </div>
             <Typography.Title level={3} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>

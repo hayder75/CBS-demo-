@@ -67,6 +67,15 @@ public class Member {
     @Column(name = "loan_outstanding")
     private java.math.BigDecimal loanOutstanding = java.math.BigDecimal.ZERO;
 
+    @Column(name = "has_photo", nullable = false)
+    private Boolean hasPhoto = true;
+
+    @Column(name = "has_signature", nullable = false)
+    private Boolean hasSignature = true;
+
+    @Column(name = "kyc_status", nullable = false)
+    private String kycStatus = "Verified";
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<NextOfKin> nextOfKin = new ArrayList<>();
 

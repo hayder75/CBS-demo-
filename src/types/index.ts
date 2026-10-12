@@ -374,7 +374,7 @@ export interface SavingsAccount {
   accountType: string;
   openedDate: string;
   balance: number;
-  status: 'Pending' | 'Active' | 'Dormant' | 'Closed';
+  status: 'Pending' | 'Active' | 'Dormant' | 'Closed' | 'Inactive' | 'CreditSuspension' | 'DebitSuspension' | 'UnderSuspension';
   currencyId: string;
   branchId: string;
 }
@@ -917,3 +917,100 @@ export interface BackupRecord {
   createdBy: string;
   kind: 'Manual' | 'Scheduled';
 }
+
+export type ReportColumnType = 'STRING' | 'NUMBER' | 'MONEY' | 'PERCENT' | 'DATE';
+
+export interface ReportColumn {
+  key: string;
+  label: string;
+  type: ReportColumnType;
+}
+
+export interface ReportDefinition {
+  key: string;
+  name: string;
+  description: string;
+  columns: ReportColumn[];
+  params: string[];
+}
+
+export interface ReportCategory {
+  category: string;
+  name: string;
+  reports: ReportDefinition[];
+}
+
+export interface ReportCatalog {
+  total: number;
+  categories: ReportCategory[];
+}
+
+export interface ReportResult {
+  key: string;
+  name: string;
+  columns: ReportColumn[];
+  rows: Record<string, unknown>[];
+  total: number;
+  generatedAt: string;
+  params: Record<string, string>;
+  summary: Record<string, unknown>;
+}
+
+export interface Holiday {
+  id: string;
+  name: string;
+  holidayDate: string;
+  recurring: boolean;
+  holidayType: 'Public' | 'Internal' | 'Bank';
+  description?: string;
+  status: string;
+}
+
+export interface UserGroup {
+  id: string;
+  name: string;
+  code: string;
+  maxLoginAttempts: number;
+  multipleMachineLogins: boolean;
+  branchSpecific: boolean;
+  multipleUsers: boolean;
+  description?: string;
+  permissions: string;
+  status: string;
+}
+
+export interface DeviceAccess {
+  id: string;
+  username: string;
+  deviceName?: string;
+  deviceId?: string;
+  ipAddress?: string;
+  location?: string;
+  authorized: boolean;
+  lastSeen?: string;
+  status: string;
+}
+
+export interface OrgProfile {
+  id: string;
+  name: string;
+  legalName?: string;
+  registrationNo?: string;
+  tin?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  currencyCode: string;
+  fiscalYearStart: string;
+  logoColor: string;
+  status: string;
+}
+
+export const PERMISSION_GROUPS: { group: string; permissions: string[] }[] = [
+  { group: 'Members & Accounts', permissions: ['members', 'accounts', 'shares'] },
+  { group: 'Lending', permissions: ['loans', 'collateral'] },
+  { group: 'Finance', permissions: ['finance', 'payments'] },
+  { group: 'Oversight', permissions: ['reports', 'audit', 'admin'] },
+];

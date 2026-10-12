@@ -65,6 +65,45 @@ public class AuditController {
                 "FROM audit_log ORDER BY occurred_at DESC LIMIT ?", limit);
     }
 
+    /** Head-Office consolidated audit overview. */
+    @GetMapping("/ho-overview")
+    public Map<String, Object> hoOverview() {
+        List<SavingsTransaction> all = txnRepository.findAll();
+        long total = all.size();
+        long exact = all.stream().filter(t -> "Audited".equalsIgnoreCase(t.getAuditedStatus())).count();
+        long discrepant = all.stream().filter(t -> "Discrepant".equalsIgnoreCase(t.getAuditedStatus())).count();
+        long unaudited = all.stream().filter(t -> "Unaudited".equalsIgnoreCase(t.getAuditedStatus())).count();
+
+        Map<String, long[]> byTeller = new java.util.LinkedHashMap<>();
+        for (SavingsTransaction t : all) {
+            String teller = t.getTeller() == null ? "Unassigned" : t.getTeller();
+            long[] c = byTeller.computeIfAbsent(teller, k -> new long[3]);
+            if ("Audited".equalsIgnoreCase(t.getAuditedStatus())) c[0]++;
+            else if ("Discrepant".equalsIgnoreCase(t.getAuditedStatus())) c[1]++;
+            else c[2]++;
+        }
+        List<Map<String, Object>> tellers = new java.util.ArrayList<>();
+        byTeller.forEach((teller, c) -> tellers.add(Map.of(
+                "teller", teller, "exact", c[0], "discrepant", c[1], "unaudited", c[2],
+                "total", c[0] + c[1] + c[2])));
+
+        Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("total", total);
+        out.put("auditedExact", exact);
+        out.put("auditedDiscrepant", discrepant);
+        out.put("unaudited", unaudited);
+        out.put("byTeller", tellers);
+        return out;
+    }
+
+    /** Head-Office transaction audit list (all branches). */
+    @GetMapping("/ho/transactions")
+    public List<SavingsTransaction> hoTransactions(@RequestParam(name = "status", defaultValue = "all") String status) {
+        return txnRepository.findAll().stream()
+                .filter(t -> "all".equalsIgnoreCase(status) || t.getAuditedStatus().equalsIgnoreCase(status))
+                .toList();
+    }
+
     private SavingsTransaction setAudit(Long id, String status, String by, String note) {
         SavingsTransaction t = txnRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("Transaction not found: " + id));

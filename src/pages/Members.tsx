@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Avatar,
@@ -10,6 +10,7 @@ import {
   Input,
   Modal,
   Row,
+  Segmented,
   Select,
   Space,
   Table,
@@ -50,6 +51,32 @@ export default function Members() {
   const [createOpen, setCreateOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+
+  interface KycRow { id: string | number; memberNo: string; fullName: string; gender: string; phone?: string; status: string; hasPhoto: boolean; hasSignature: boolean; kycStatus: string }
+  const [kycFilter, setKycFilter] = useState('pending');
+  const [kycRows, setKycRows] = useState<KycRow[]>([]);
+  const [kycSummary, setKycSummary] = useState<{ total: number; pending: number; verified: number; emptyPhoto: number; withoutSignature: number } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importJson, setImportJson] = useState('[{"fullName":"New Member","gender":"F","phone":"+251 91 000 0000"}]');
+
+  const loadKyc = async (filter: string) => {
+    setKycRows(await api<KycRow[]>(`/api/members/kyc?filter=${filter}`).catch(() => []));
+    setKycSummary(await api('/api/members/kyc/summary').catch(() => null) as typeof kycSummary);
+  };
+
+  useEffect(() => { loadKyc(kycFilter); /* eslint-disable-line */ }, [kycFilter]);
+
+  const doImport = async () => {
+    try {
+      const rows = JSON.parse(importJson);
+      const res = await api<{ created: number; total: number }>('/api/members/import', { method: 'POST', body: JSON.stringify({ rows }) });
+      message.success(`Imported ${res.created} of ${res.total} members`);
+      setImportOpen(false);
+      await loadKyc(kycFilter);
+    } catch (e) {
+      message.error((e as Error).message);
+    }
+  };
 
   const createMember = async () => {
     const values = await form.validateFields();
@@ -150,6 +177,49 @@ export default function Members() {
           />
         </Col>
       </Row>
+
+      <Card
+        title="KYC Review"
+        extra={
+          <Space wrap>
+            <Segmented
+              size="small"
+              value={kycFilter}
+              onChange={(v) => setKycFilter(String(v))}
+              options={[
+                { label: 'Pending', value: 'pending' },
+                { label: 'Verified', value: 'verified' },
+                { label: 'Empty Photo', value: 'empty-photo' },
+                { label: 'No Signature', value: 'without-signature' },
+                { label: 'KYC Waiting', value: 'kyc-waiting' },
+                { label: 'All', value: 'all' },
+              ]}
+            />
+            <Button icon={<PlusOutlined />} onClick={() => setImportOpen(true)}>Import</Button>
+          </Space>
+        }
+      >
+        <Space wrap style={{ marginBottom: 12 }}>
+          <Tag color="gold">Pending {kycSummary?.pending ?? 0}</Tag>
+          <Tag color="green">Verified {kycSummary?.verified ?? 0}</Tag>
+          <Tag color="red">Empty Photo {kycSummary?.emptyPhoto ?? 0}</Tag>
+          <Tag color="red">No Signature {kycSummary?.withoutSignature ?? 0}</Tag>
+        </Space>
+        <Table
+          rowKey="id"
+          size="small"
+          dataSource={kycRows}
+          pagination={{ pageSize: 6, showSizeChanger: false }}
+          columns={[
+            { title: 'Member No', dataIndex: 'memberNo', width: 120 },
+            { title: 'Name', dataIndex: 'fullName' },
+            { title: 'Phone', dataIndex: 'phone', width: 160 },
+            { title: 'Photo', dataIndex: 'hasPhoto', width: 90, render: (v: boolean) => (v ? <Tag color="green">Yes</Tag> : <Tag color="red">Missing</Tag>) },
+            { title: 'Signature', dataIndex: 'hasSignature', width: 100, render: (v: boolean) => (v ? <Tag color="green">Yes</Tag> : <Tag color="red">Missing</Tag>) },
+            { title: 'KYC', dataIndex: 'kycStatus', width: 120, render: (s: string) => <Tag color={s === 'Verified' ? 'green' : 'gold'}>{s}</Tag> },
+          ]}
+        />
+      </Card>
 
       <Card
         title="Member Registry"
@@ -300,6 +370,13 @@ export default function Members() {
             posted through their own workflows.
           </Typography.Text>
         </Form>
+      </Modal>
+
+      <Modal title="Import Members" open={importOpen} onCancel={() => setImportOpen(false)} onOk={doImport} okText="Import">
+        <Typography.Paragraph type="secondary">
+          Paste a JSON array of member objects: <code>{'{fullName, gender, phone}'}</code>.
+        </Typography.Paragraph>
+        <Input.TextArea rows={6} value={importJson} onChange={(e) => setImportJson(e.target.value)} />
       </Modal>
     </ProCard>
   );

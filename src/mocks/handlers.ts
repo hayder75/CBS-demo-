@@ -84,10 +84,159 @@ import { loanLifecycleHandlers } from './modules/loanLifecycle';
 import { complianceHandlers } from './modules/compliance';
 import { systemOpsHandlers } from './modules/systemOps';
 import { twoFactorHandlers } from './modules/twoFactor';
+import { reportFrameworkHandlers } from './modules/reports';
+import { adminConsoleHandlers } from './modules/admin';
+import { scoringHandlers } from './modules/scoring';
 
 const json = (body: unknown) => HttpResponse.json(body as Parameters<typeof HttpResponse.json>[0]);
 
 let idCounter = 1000;
+
+const loanConfig = [
+  { id: 'lc1', configKey: 'default_interest_rate_pct', configValue: '14', valueType: 'NUMBER', configGroup: 'Interest', description: 'Default annual interest rate for new loans' },
+  { id: 'lc2', configKey: 'max_loan_to_savings_ratio', configValue: '3', valueType: 'NUMBER', configGroup: 'Limits', description: 'Maximum loan as a multiple of savings' },
+  { id: 'lc3', configKey: 'min_loan_amount', configValue: '1000', valueType: 'NUMBER', configGroup: 'Limits', description: 'Minimum loan amount' },
+  { id: 'lc4', configKey: 'max_loan_amount', configValue: '500000', valueType: 'NUMBER', configGroup: 'Limits', description: 'Maximum single loan amount' },
+  { id: 'lc5', configKey: 'default_term_months', configValue: '24', valueType: 'NUMBER', configGroup: 'Tenor', description: 'Default loan term in months' },
+  { id: 'lc6', configKey: 'penalty_rate_pct', configValue: '2', valueType: 'NUMBER', configGroup: 'Penalty', description: 'Late payment penalty rate' },
+  { id: 'lc7', configKey: 'grace_period_months', configValue: '1', valueType: 'NUMBER', configGroup: 'Tenor', description: 'Default grace period' },
+  { id: 'lc8', configKey: 'require_collateral_above', configValue: '100000', valueType: 'NUMBER', configGroup: 'Collateral', description: 'Collateral required above this amount' },
+];
+
+const productTypes = [
+  { id: 'pt1', code: 'SAV-MAND', name: 'Mandatory Savings', category: 'Saving', description: 'Compulsory member savings', status: 'Verified' },
+  { id: 'pt2', code: 'SAV-VOL', name: 'Voluntary Savings', category: 'Saving', description: 'Optional member savings', status: 'Verified' },
+  { id: 'pt3', code: 'SAV-FIX', name: 'Fixed / Time Deposit', category: 'Saving', description: 'Fixed-term deposit product', status: 'Verified' },
+  { id: 'pt4', code: 'SHR-ORD', name: 'Ordinary Shares', category: 'Share', description: 'Standard member share', status: 'Verified' },
+  { id: 'pt5', code: 'SHR-SPEC', name: 'Special Shares', category: 'Share', description: 'Founder / special share class', status: 'Pending' },
+  { id: 'pt6', code: 'LN-PER', name: 'Personal Loan', category: 'Loan', description: 'Individual personal loan', status: 'Verified' },
+  { id: 'pt7', code: 'LN-GRP', name: 'Group Loan', category: 'Loan', description: 'Group-guaranteed loan', status: 'Verified' },
+  { id: 'pt8', code: 'LN-BIZ', name: 'Business Loan', category: 'Loan', description: 'SME / business loan', status: 'Verified' },
+  { id: 'pt9', code: 'LN-EMG', name: 'Emergency Loan', category: 'Loan', description: 'Short-term emergency loan', status: 'Verified' },
+  { id: 'pt10', code: 'LN-EDU', name: 'Education Loan', category: 'Loan', description: 'School fees loan', status: 'Pending' },
+];
+
+const documentTypes = [
+  { id: 'dt1', code: 'DOC-NID', name: 'National ID Copy', category: 'Customer', mandatory: true, retentionYears: 10, description: 'Copy of the national identity card', status: 'Verified' },
+  { id: 'dt2', code: 'DOC-PHOTO', name: 'Passport Photo', category: 'Customer', mandatory: true, retentionYears: 5, description: 'Recent passport-size photograph', status: 'Verified' },
+  { id: 'dt3', code: 'DOC-KYC', name: 'KYC Form', category: 'Customer', mandatory: true, retentionYears: 10, description: 'Know-your-customer declaration', status: 'Verified' },
+  { id: 'dt4', code: 'DOC-SIG', name: 'Signature Card', category: 'Customer', mandatory: true, retentionYears: 10, description: 'Specimen signature card', status: 'Verified' },
+  { id: 'dt5', code: 'DOC-PAYSLIP', name: 'Payslip / Employment Letter', category: 'Loan', mandatory: false, retentionYears: 5, description: 'Proof of income', status: 'Verified' },
+  { id: 'dt6', code: 'DOC-TITLE', name: 'Collateral Title Deed', category: 'Collateral', mandatory: false, retentionYears: 15, description: 'Ownership document for collateral', status: 'Verified' },
+  { id: 'dt7', code: 'DOC-INSURANCE', name: 'Insurance Certificate', category: 'Collateral', mandatory: false, retentionYears: 5, description: 'Insurance covering pledged asset', status: 'Pending' },
+  { id: 'dt8', code: 'DOC-GUARANTEE', name: 'Guarantee Agreement', category: 'Loan', mandatory: false, retentionYears: 10, description: 'Loan guarantee contract', status: 'Verified' },
+];
+
+const messages = [
+  { id: 'm1', title: 'Liquidity ratio below policy', body: 'The liquidity ratio has fallen below the 20% policy floor.', category: 'Risk', audience: 'MANAGER', channel: 'In-App', status: 'Sent', createdBy: 'Workineh', createdAt: '2026-09-20T09:10:00', sentAt: '2026-09-20T09:10:00' },
+  { id: 'm2', title: 'Month-end close reminder', body: 'All tellers must close tills before the end-of-month close.', category: 'Operations', audience: 'TELLER', channel: 'In-App', status: 'Sent', createdBy: 'Workineh', createdAt: '2026-09-28T16:00:00', sentAt: '2026-09-28T16:00:00' },
+  { id: 'm3', title: 'Loan arrears follow-up', body: 'PAR increased this month; follow up on 30+ day arrears.', category: 'Credit', audience: 'LOAN_OFFICER', channel: 'Email', status: 'Draft', createdBy: 'Workineh', createdAt: '2026-09-29T11:30:00', sentAt: null },
+];
+
+const attachments: { id: string; documentTypeId: string; entityType: string; entityId: string; fileName: string; mimeType: string; sizeKb: number; uploadedBy: string; uploadedAt: string; status: string }[] = [];
+
+const kycOf = (i: number) => ({
+  hasPhoto: i % 7 !== 0,
+  hasSignature: i % 5 !== 0,
+  kycStatus: i % 10 === 0 ? 'KycWaiting' : i % 6 === 0 ? 'Pending' : 'Verified',
+});
+
+const searchHandlers = [
+  http.get('/api/search', ({ request }) => {
+    const url = new URL(request.url);
+    const type = url.searchParams.get('type') ?? 'Customer';
+    const q = (url.searchParams.get('q') ?? '').toLowerCase();
+    const m = (s?: string) => !q || (s ?? '').toLowerCase().includes(q);
+    const t = type.toLowerCase();
+    let results: { title: string; subtitle: string; detail: string; ref: string }[] = [];
+    if (t.includes('account') && !t.includes('share')) {
+      results = savingsAccounts.filter((a) => m(a.accountNo) || m(a.accountType)).map((a) => ({ title: a.accountNo, subtitle: `${a.accountType} · ${a.status}`, detail: `Balance ${a.balance}`, ref: a.accountNo }));
+    } else if (t.includes('share')) {
+      results = shareAccounts.filter((s) => m(s.status) || m(String(s.shareCount))).map((s) => ({ title: `Share account #${s.id}`, subtitle: s.status, detail: `${s.shareCount ?? 0} shares`, ref: String(s.id) }));
+    } else if (t === 'gl' || t.includes('ledger')) {
+      results = glAccounts.filter((g) => m(g.code) || m(g.name) || m(g.category)).map((g) => ({ title: `${g.code} — ${g.name}`, subtitle: g.category, detail: `Balance ${g.balance}`, ref: g.code }));
+    } else if (t.includes('document')) {
+      results = documentTypes.filter((d) => m(d.code) || m(d.name) || m(d.category)).map((d) => ({ title: d.name, subtitle: `${d.code} · ${d.category}`, detail: d.mandatory ? 'Mandatory' : 'Optional', ref: d.code }));
+    } else if (t.includes('transaction')) {
+      results = savingsTransactions.filter((x) => m(String(x.id)) || m(x.teller) || m(x.type)).map((x) => ({ title: `#${x.id} ${x.type}`, subtitle: String(x.date), detail: `${x.amount} by ${x.teller ?? '—'}`, ref: String(x.id) }));
+    } else if (t.includes('loan')) {
+      results = loans.filter((l) => m(l.loanNo) || m(l.status) || m(l.classification)).map((l) => ({ title: l.loanNo, subtitle: `${l.status} · ${l.classification}`, detail: `Balance ${l.balance}`, ref: l.loanNo }));
+    } else {
+      results = members.filter((mm) => m(mm.fullName) || m(mm.memberNo) || m(mm.phone)).map((mm) => ({ title: mm.fullName, subtitle: mm.memberNo, detail: `Phone ${mm.phone ?? '—'} · ${mm.status}`, ref: mm.memberNo }));
+    }
+    return json({ type, query: q, count: results.length, results });
+  }),
+];
+
+const gapHandlers = [
+  http.get('/api/members/kyc/summary', () => {
+    const enriched = members.map((_, i) => ({ ...kycOf(i) }));
+    return json({
+      total: enriched.length,
+      pending: enriched.filter((m) => m.kycStatus === 'Pending' || m.kycStatus === 'KycWaiting').length,
+      verified: enriched.filter((m) => m.kycStatus === 'Verified').length,
+      emptyPhoto: enriched.filter((m) => !m.hasPhoto).length,
+      withoutSignature: enriched.filter((m) => !m.hasSignature).length,
+    });
+  }),
+  http.get('/api/members/kyc', ({ request }) => {
+    const filter = new URL(request.url).searchParams.get('filter') ?? 'all';
+    const enriched = members.map((m, i) => ({ id: m.id, memberNo: m.memberNo, fullName: m.fullName, gender: m.gender, phone: m.phone, status: m.status, ...kycOf(i) }));
+    const f = filter.toLowerCase();
+    return json(enriched.filter((m) => {
+      if (f === 'pending') return m.kycStatus === 'Pending' || m.kycStatus === 'KycWaiting';
+      if (f === 'verified') return m.kycStatus === 'Verified';
+      if (f === 'empty-photo') return !m.hasPhoto;
+      if (f === 'without-signature') return !m.hasSignature;
+      if (f === 'kyc-waiting') return m.kycStatus === 'KycWaiting';
+      return true;
+    }));
+  }),
+  http.post('/api/members/import', async ({ request }) => {
+    const b = (await request.json().catch(() => ({}))) as { rows?: { fullName?: string }[] };
+    if (!Array.isArray(b.rows)) return HttpResponse.json({ error: 'rows must be an array' }, { status: 400 });
+    return json({ created: b.rows.filter((r) => r.fullName).length, total: b.rows.length });
+  }),
+  http.get('/api/documents/attachments', ({ request }) => {
+    const url = new URL(request.url);
+    const et = url.searchParams.get('entityType');
+    const ei = url.searchParams.get('entityId');
+    return json(et && ei ? attachments.filter((a) => a.entityType === et && a.entityId === ei) : attachments);
+  }),
+  http.post('/api/documents/attachments', async ({ request }) => {
+    const b = (await request.json().catch(() => ({}))) as { documentTypeId?: string | number; entityType?: string; entityId?: string; fileName?: string; mimeType?: string; sizeKb?: number; uploadedBy?: string };
+    if (!b.documentTypeId || !b.entityType || !b.entityId || !b.fileName) return HttpResponse.json({ error: 'missing fields' }, { status: 400 });
+    const a = { id: String(++idCounter), documentTypeId: String(b.documentTypeId), entityType: b.entityType, entityId: b.entityId, fileName: b.fileName, mimeType: b.mimeType ?? 'application/pdf', sizeKb: b.sizeKb ?? 0, uploadedBy: b.uploadedBy ?? 'Workineh', uploadedAt: new Date().toISOString(), status: 'Active' };
+    attachments.push(a);
+    return json(a);
+  }),
+  http.delete('/api/documents/attachments/:id', ({ params }) => {
+    const i = attachments.findIndex((a) => a.id === params.id);
+    if (i >= 0) attachments.splice(i, 1);
+    return json({ ok: true });
+  }),
+  http.get('/api/messages', ({ request }) => {
+    const status = new URL(request.url).searchParams.get('status');
+    return json(status ? messages.filter((m) => m.status === status) : messages);
+  }),
+  http.post('/api/messages', async ({ request }) => {
+    const b = (await request.json().catch(() => ({}))) as { title?: string; body?: string; category?: string; audience?: string; channel?: string; send?: boolean };
+    if (!b.title) return HttpResponse.json({ error: 'title is required' }, { status: 400 });
+    const m = { id: String(++idCounter), title: b.title, body: b.body ?? '', category: b.category ?? 'General', audience: b.audience ?? 'All', channel: b.channel ?? 'In-App', status: b.send ? 'Sent' : 'Draft', createdBy: 'Workineh', createdAt: new Date().toISOString(), sentAt: b.send ? new Date().toISOString() : null };
+    messages.push(m);
+    return json(m);
+  }),
+  http.post('/api/messages/:id/send', ({ params }) => {
+    const m = messages.find((x) => x.id === params.id);
+    if (m) { m.status = 'Sent'; m.sentAt = new Date().toISOString(); }
+    return json(m ?? {});
+  }),
+  http.delete('/api/messages/:id', ({ params }) => {
+    const i = messages.findIndex((m) => m.id === params.id);
+    if (i >= 0) messages.splice(i, 1);
+    return json({ ok: true });
+  }),
+];
 
 export const handlers = [
   http.get('/api/auth/me', async () => {
@@ -220,6 +369,25 @@ export const handlers = [
 
   http.get('/api/loans', () => json(loans)),
   http.get('/api/loans/products', () => json(loanProducts)),
+  http.get('/api/loans/repayment-prediction', () =>
+    json(loans.filter((l) => l.balance > 0).map((l) => ({
+      loanNo: l.loanNo,
+      member: l.memberName,
+      balance: l.balance,
+      nextDueDate: l.disbursedAt ?? '',
+      overdueDays: l.overdueDays,
+      aiScore: l.aiScore ?? 60,
+      aiPdPct: l.aiPdPct ?? 5,
+      guidance: l.aiGuidance ?? 'Monitor',
+    })))),
+  http.get('/api/loan-config', () => json(loanConfig)),
+  http.put('/api/loan-config/:key', async ({ params, request }) => {
+    const c = loanConfig.find((x) => x.configKey === params.key);
+    if (!c) return HttpResponse.json({ error: 'not found' }, { status: 404 });
+    const b = (await request.json().catch(() => ({}))) as { configValue?: string };
+    if (b.configValue !== undefined) c.configValue = b.configValue;
+    return json(c);
+  }),
   http.get('/api/loans/:id', ({ params }) =>
     json(loans.find((l) => l.id === params.id) ?? null),
   ),
@@ -471,6 +639,28 @@ export const handlers = [
   http.post('/api/accounts/:id/verify', ({ params }) => { const a = savingsAccounts.find((x) => x.id === params.id); if (a) a.status = 'Active'; return json({ ok: true }); }),
   http.post('/api/accounts/:id/freeze', ({ params }) => { const a = savingsAccounts.find((x) => x.id === params.id); if (a) a.status = 'Dormant'; return json({ ok: true }); }),
   http.post('/api/accounts/:id/close', ({ params }) => { const a = savingsAccounts.find((x) => x.id === params.id); if (a) a.status = 'Closed'; return json({ ok: true }); }),
+  http.post('/api/accounts/:id/suspend', ({ params, request }) => {
+    const kind = new URL(request.url).searchParams.get('kind') ?? 'Under';
+    const a = savingsAccounts.find((x) => x.id === params.id);
+    if (a) a.status = kind === 'Credit' ? 'CreditSuspension' : kind === 'Debit' ? 'DebitSuspension' : 'UnderSuspension';
+    return json(a ?? {});
+  }),
+  http.post('/api/accounts/:id/inactivate', ({ params }) => { const a = savingsAccounts.find((x) => x.id === params.id); if (a) a.status = 'Inactive'; return json(a ?? {}); }),
+  http.post('/api/accounts/:id/reactivate', ({ params }) => { const a = savingsAccounts.find((x) => x.id === params.id); if (a) a.status = 'Active'; return json(a ?? {}); }),
+  http.get('/api/documents', () => json(documentTypes)),
+  http.post('/api/documents', async ({ request }) => {
+    const b = (await request.json().catch(() => ({}))) as { code?: string; name?: string; category?: string; mandatory?: boolean; retentionYears?: number };
+    if (!b.code || !b.name) return HttpResponse.json({ error: 'code and name are required' }, { status: 400 });
+    if (documentTypes.some((d) => d.code === b.code)) return HttpResponse.json({ error: 'document code exists' }, { status: 400 });
+    const d = { id: String(++idCounter), code: b.code, name: b.name, category: b.category ?? 'Customer', mandatory: !!b.mandatory, retentionYears: b.retentionYears ?? 5, description: '', status: 'Pending' };
+    documentTypes.push(d);
+    return json(d);
+  }),
+  http.post('/api/documents/:id/verify', ({ params }) => {
+    const d = documentTypes.find((x) => x.id === params.id);
+    if (d) d.status = 'Verified';
+    return json(d ?? {});
+  }),
 
   http.get('/api/share-categories', () => json(shareCategories)),
   http.post('/api/share-categories', async ({ request }) => {
@@ -564,6 +754,36 @@ export const handlers = [
   http.post('/api/assets/:id/depreciate', ({ params }) => { const a = assets.find((x) => x.id === params.id); if (a) a.value = Math.round(a.value * (1 - a.depreciationRate / 100)); return json({ ok: true }); }),
 
   http.get('/api/coa/classes', () => json(glClasses)),
+  http.get('/api/coa/leaves', () => json(glAccounts)),
+  http.get('/api/coa/hierarchical', () => json(glClasses.map((c) => ({
+    id: c.id, name: c.name, status: c.status,
+    leaves: glAccounts.filter((a) => String(a.classId) === String(c.id)).map((a) => ({
+      code: a.code, name: a.name, balance: a.balance, category: a.category,
+    })),
+  })))),
+  http.post('/api/coa/import-gl-balance', async ({ request }) => {
+    const b = (await request.json().catch(() => ({}))) as { rows?: { code: string; balance: number }[] };
+    let updated = 0;
+    (b.rows ?? []).forEach((r) => {
+      const a = glAccounts.find((x) => x.code === r.code);
+      if (a) { a.balance = Number(r.balance); updated++; }
+    });
+    return json({ updated, total: b.rows?.length ?? 0 });
+  }),
+  http.get('/api/product-types', () => json(productTypes)),
+  http.post('/api/product-types', async ({ request }) => {
+    const b = (await request.json().catch(() => ({}))) as { code?: string; name?: string; category?: string };
+    if (!b.code || !b.name) return HttpResponse.json({ error: 'code and name are required' }, { status: 400 });
+    if (productTypes.some((p) => p.code === b.code)) return HttpResponse.json({ error: 'product code exists' }, { status: 400 });
+    const p = { id: String(++idCounter), code: b.code, name: b.name, category: b.category ?? 'Saving', description: '', status: 'Pending' };
+    productTypes.push(p);
+    return json(p);
+  }),
+  http.post('/api/product-types/:id/verify', ({ params }) => {
+    const p = productTypes.find((x) => String(x.id) === params.id);
+    if (p) p.status = 'Verified';
+    return json(p ?? {});
+  }),
   http.post('/api/coa/classes', async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
     const c = { id: String(++idCounter), name: String(body.name), status: 'Pending' } as GlClass;
@@ -575,6 +795,29 @@ export const handlers = [
   http.get('/api/payments', () => json(payments)),
   http.get('/api/payments/status/:status', ({ params }) => json(payments.filter((p) => p.status === params.status))),
   http.get('/api/payments/kind/:kind', ({ params }) => json(payments.filter((p) => p.kind === params.kind))),
+  http.get('/api/payments/authorize/categories', () => {
+    const cats = [
+      ['CUSTOMER_DEPOSIT', 'Customer Deposits', 'Deposits funds into member accounts', ['DEPOSIT']],
+      ['CUSTOMER_WITHDRAWAL', 'Customer Withdrawals', 'Withdrawals from member accounts', ['WITHDRAWAL']],
+      ['SHARE_WITHDRAWAL', 'Share Withdrawals', 'Withdrawal of shares from member accounts', ['SHARE_WITHDRAWAL']],
+      ['SHARE_TRANSFER', 'Share Transfers', 'Movement of shares between member accounts', ['SHARE_TRANSFER']],
+      ['CUSTOMER_ADJUSTMENT', 'Customer Adjustments', 'Period-end corrections to member balances', ['ADJUSTMENT', 'CUSTOMER_ADJUSTMENT']],
+      ['OUTGOING_CLAIM', 'Outgoing Claims', 'Branch transferring funds to another branch GL', ['BRANCH_CLAIM', 'OUTGOING_CLAIM']],
+      ['TILL', 'Till Transactions', 'Cash movement within the till network', ['TILL']],
+      ['RECEIPT_VOUCHER', 'Receipt Voucher', 'Incoming receipt posted to the GL', ['RECEIPT_VOUCHER']],
+      ['MANUAL_DEPOSIT', 'Manual Deposits/Credits', 'Direct credit to a GL account', ['MANUAL_DEPOSIT']],
+      ['MANUAL_WITHDRAWAL', 'Manual Withdrawals/Debits', 'Direct debit from a GL account', ['MANUAL_WITHDRAWAL']],
+      ['ACCOUNT_TRANSFER', 'Account Transfers', 'Transfer between accounts within the organisation', ['TRANSFER', 'ACCOUNT_TRANSFER']],
+      ['MASS_TRANSFER', 'Mass Transfers', 'One-to-many / many-to-many transfers', ['MASS', 'MASS_TRANSFER']],
+      ['MANUAL_ADJUSTMENT', 'Manual Adjustments', 'Period-end GL corrections', ['MANUAL_ADJUSTMENT']],
+      ['INCOMING_CLAIM', 'Incoming Claims', 'Branch claiming funds owed by another branch GL', ['INCOMING_CLAIM']],
+      ['PAYMENT_VOUCHER', 'Payment Voucher', 'Outgoing payment settled through the GL', ['PAYMENT_VOUCHER']],
+    ] as const;
+    return json(cats.map(([key, name, description, kinds]) => ({
+      key, name, description, kinds,
+      pending: payments.filter((p) => p.status === 'Pending' && (kinds as readonly string[]).includes(p.kind)).length,
+    })));
+  }),
   http.post('/api/payments', async ({ request }) => {
     await delay(500);
     const body = (await request.json()) as Record<string, unknown>;
@@ -619,6 +862,70 @@ export const handlers = [
   http.post('/api/audit/transactions/:id/note', async ({ params, request }) => { const t = savingsTransactions.find((x) => x.id === params.id); const b = await request.json().catch(() => ({})); if (t) t.auditNote = (b as { note?: string }).note; return json(t ?? {}); }),
   http.get('/api/audit/logs', () => json(auditLogs)),
 
+  http.get('/api/audit/ho-overview', () => {
+    const all = savingsTransactions;
+    const exact = all.filter((t) => t.auditedStatus === 'Audited').length;
+    const discrepant = all.filter((t) => t.auditedStatus === 'Discrepant').length;
+    const unaudited = all.filter((t) => !t.auditedStatus || t.auditedStatus === 'Unaudited').length;
+    const byTeller = new Map<string, { exact: number; discrepant: number; unaudited: number }>();
+    all.forEach((t) => {
+      const k = t.teller ?? 'Unassigned';
+      const e = byTeller.get(k) ?? { exact: 0, discrepant: 0, unaudited: 0 };
+      if (t.auditedStatus === 'Audited') e.exact++;
+      else if (t.auditedStatus === 'Discrepant') e.discrepant++;
+      else e.unaudited++;
+      byTeller.set(k, e);
+    });
+    return json({
+      total: all.length,
+      auditedExact: exact,
+      auditedDiscrepant: discrepant,
+      unaudited,
+      byTeller: [...byTeller.entries()].map(([teller, v]) => ({
+        teller, ...v, total: v.exact + v.discrepant + v.unaudited,
+      })),
+    });
+  }),
+  http.get('/api/audit/ho/transactions', ({ request }) => {
+    const status = new URL(request.url).searchParams.get('status') ?? 'all';
+    return json(savingsTransactions.filter((t) => status === 'all' || t.auditedStatus === status));
+  }),
+
+  http.get('/api/finance/cash-position', () => {
+    const accounts = glAccounts
+      .filter((a) => a.code.startsWith('10') || a.code.startsWith('11') || /cash|bank/i.test(a.name))
+      .map((a) => ({ code: a.code, account: a.name, balance: a.balance, currency: 'ETB' }));
+    return json({ total: accounts.reduce((s, a) => s + a.balance, 0), accounts, asOf: new Date().toISOString() });
+  }),
+  http.get('/api/finance/daily-trial-balance', () => {
+    const rows = glAccounts.map((a) => ({
+      code: a.code, name: a.name,
+      debit: a.balance >= 0 ? a.balance : 0,
+      credit: a.balance < 0 ? Math.abs(a.balance) : 0,
+    }));
+    return json({
+      rows,
+      totalDebit: rows.reduce((s, r) => s + r.debit, 0),
+      totalCredit: rows.reduce((s, r) => s + r.credit, 0),
+    });
+  }),
+  http.get('/api/finance/income-statement', () => {
+    const income = glAccounts.filter((a) => a.category === 'Income').map((a) => ({ code: a.code, name: a.name, amount: a.balance }));
+    const expense = glAccounts.filter((a) => a.category === 'Expense').map((a) => ({ code: a.code, name: a.name, amount: a.balance }));
+    const totalIncome = income.reduce((s, a) => s + a.amount, 0);
+    const totalExpense = expense.reduce((s, a) => s + a.amount, 0);
+    return json({ income, expense, totalIncome, totalExpense, netSurplus: totalIncome - totalExpense });
+  }),
+  http.get('/api/finance/opening-balance', () =>
+    json(glAccounts.map((a) => ({ code: a.code, name: a.name, balance: a.balance, category: a.category })))),
+  http.post('/api/finance/opening-balance', async ({ request }) => {
+    const b = (await request.json().catch(() => ({}))) as { code?: string; amount?: number };
+    const a = glAccounts.find((x) => x.code === b.code);
+    if (!a) return HttpResponse.json({ error: 'GL account not found' }, { status: 404 });
+    a.balance = Number(b.amount ?? 0);
+    return json({ code: a.code, name: a.name, balance: a.balance });
+  }),
+
   http.get('/api/dop', () => json([{ id: '1', opDate: '2026-09-09', branchId: '1', vaultId: '1', status: 'Open', openedBy: 'Sisay Worku', openedAt: '2026-09-09T08:00:00', closedBy: null, closedAt: null }])),
   http.get('/api/dop/open', () => json({ id: '1', opDate: '2026-09-09', branchId: '1', vaultId: '1', status: 'Open', openedBy: 'Sisay Worku', openedAt: '2026-09-09T08:00:00' })),
   http.post('/api/dop/start', async () => { await delay(400); return json({ ok: true }); }),
@@ -654,6 +961,11 @@ export const handlers = [
   ...complianceHandlers,
   ...systemOpsHandlers,
   ...twoFactorHandlers,
+  ...reportFrameworkHandlers,
+  ...adminConsoleHandlers,
+  ...searchHandlers,
+  ...gapHandlers,
+  ...scoringHandlers,
 ];
 
 export const reportRows = {

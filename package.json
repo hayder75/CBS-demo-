@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:mock": "tsc -b && VITE_USE_MOCK=true vite build && node scripts/inject-preload.mjs",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",

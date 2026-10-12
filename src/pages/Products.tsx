@@ -36,23 +36,36 @@ const statusCol = (s: string) => (
   <Tag color={s === 'Verified' || s === 'Active' ? 'green' : s === 'Pending' ? 'gold' : 'default'}>{s}</Tag>
 );
 
+interface ProductTypeRow {
+  id: string | number;
+  code: string;
+  name: string;
+  category: string;
+  description?: string;
+  status: string;
+}
+
 export default function Products() {
   const [savingsProducts, setSavingsProducts] = useState<SavingsProduct[]>([]);
   const [shareCategories, setShareCategories] = useState<ShareCategory[]>([]);
   const [charges, setCharges] = useState<Charge[]>([]);
+  const [productTypes, setProductTypes] = useState<ProductTypeRow[]>([]);
 
   const [spOpen, setSpOpen] = useState(false);
   const [scOpen, setScOpen] = useState(false);
   const [chOpen, setChOpen] = useState(false);
+  const [ptOpen, setPtOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [spForm] = Form.useForm();
   const [scForm] = Form.useForm();
   const [chForm] = Form.useForm();
+  const [ptForm] = Form.useForm();
 
   const load = async () => {
     setSavingsProducts(await api<SavingsProduct[]>('/api/savings/products').catch(() => []));
     setShareCategories(await api<ShareCategory[]>('/api/share-categories').catch(() => []));
     setCharges(await api<Charge[]>('/api/charges').catch(() => []));
+    setProductTypes(await api<ProductTypeRow[]>('/api/product-types').catch(() => []));
   };
 
   useEffect(() => { load(); }, []);
@@ -213,6 +226,34 @@ export default function Products() {
               </Card>
             ),
           },
+          {
+            key: 'types',
+            label: 'Product Types',
+            children: (
+              <Card
+                title="Product Types"
+                extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setPtOpen(true)}>New Product Type</Button>}
+              >
+                <Table
+                  rowKey="id"
+                  dataSource={productTypes}
+                  pagination={false}
+                  columns={[
+                    { title: 'Code', dataIndex: 'code', width: 110 },
+                    { title: 'Name', dataIndex: 'name' },
+                    { title: 'Category', dataIndex: 'category', width: 110, render: (c: string) => <Tag color={c === 'Saving' ? 'blue' : c === 'Share' ? 'purple' : 'gold'}>{c}</Tag> },
+                    { title: 'Description', dataIndex: 'description', ellipsis: true },
+                    { title: 'Status', dataIndex: 'status', width: 100, render: statusCol },
+                    {
+                      title: 'Actions',
+                      render: (_: unknown, r: ProductTypeRow) =>
+                        r.status === 'Pending' ? <Button size="small" type="primary" onClick={() => verify(`/api/product-types/${r.id}/verify`)}>Verify</Button> : null,
+                    },
+                  ]}
+                />
+              </Card>
+            ),
+          },
         ]}
       />
 
@@ -284,6 +325,22 @@ export default function Products() {
                 <Select options={[{ label: 'No', value: false }, { label: 'Yes', value: true }]} />
               </Form.Item>
             </Col>
+          </Row>
+        </Form>
+      </Modal>
+
+      {/* Product type modal */}
+      <Modal title="New Product Type" open={ptOpen} onCancel={() => setPtOpen(false)} onOk={() => ptForm.submit()} confirmLoading={saving}>
+        <Form form={ptForm} layout="vertical" style={{ marginTop: 16 }} onFinish={(v) => post(ptForm, '/api/product-types', v, () => setPtOpen(false))}>
+          <Row gutter={16}>
+            <Col span={12}><Form.Item label="Code" name="code" rules={[{ required: true }]}><Input placeholder="LN-NEW" /></Form.Item></Col>
+            <Col span={12}><Form.Item label="Name" name="name" rules={[{ required: true }]}><Input /></Form.Item></Col>
+            <Col span={12}>
+              <Form.Item label="Category" name="category" initialValue="Saving">
+                <Select options={['Saving', 'Share', 'Loan'].map((t) => ({ label: t, value: t }))} />
+              </Form.Item>
+            </Col>
+            <Col span={12}><Form.Item label="Description" name="description"><Input /></Form.Item></Col>
           </Row>
         </Form>
       </Modal>

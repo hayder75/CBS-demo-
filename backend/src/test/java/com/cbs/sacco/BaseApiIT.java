@@ -78,6 +78,19 @@ public abstract class BaseApiIT {
         return content.isEmpty() ? null : objectMapper.readTree(content);
     }
 
+    protected JsonNode put(String path, Object body, String token, int expectedStatus) throws Exception {
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put(path)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andReturn();
+        assertEquals(expectedStatus, result.getResponse().getStatus(),
+                "PUT " + path + " -> expected " + expectedStatus + " got " + result.getResponse().getStatus()
+                        + " body=" + result.getResponse().getContentAsString());
+        String content = result.getResponse().getContentAsString();
+        return content.isEmpty() ? null : objectMapper.readTree(content);
+    }
+
     protected void assertHasFields(JsonNode node, String... fields) {
         for (String f : fields) {
             assertTrue(node.has(f), "missing field '" + f + "' in " + node.toString());

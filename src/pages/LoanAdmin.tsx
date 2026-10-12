@@ -35,6 +35,8 @@ export default function LoanAdmin() {
   const [categories, setCategories] = useState<LoanCategory[]>([]);
   const [groups, setGroups] = useState<LoanGroup[]>([]);
   const [jobs, setJobs] = useState<BatchJob[]>([]);
+  const [config, setConfig] = useState<{ id: string | number; configKey: string; configValue: string; valueType: string; configGroup: string; description?: string }[]>([]);
+  const [predictions, setPredictions] = useState<{ loanNo: string; member: string; balance: number; nextDueDate: string; overdueDays: number; aiScore: number; aiPdPct: number; guidance: string }[]>([]);
 
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -45,6 +47,18 @@ export default function LoanAdmin() {
     setCategories(await api<LoanCategory[]>('/api/loan-categories').catch(() => []));
     setGroups(await api<LoanGroup[]>('/api/loan-groups').catch(() => []));
     setJobs(await api<BatchJob[]>('/api/batch-jobs').catch(() => []));
+    setConfig(await api<{ id: string | number; configKey: string; configValue: string; valueType: string; configGroup: string; description?: string }[]>('/api/loan-config').catch(() => []));
+    setPredictions(await api<{ loanNo: string; member: string; balance: number; nextDueDate: string; overdueDays: number; aiScore: number; aiPdPct: number; guidance: string }[]>('/api/loans/repayment-prediction').catch(() => []));
+  };
+
+  const saveConfig = async (key: string, value: string) => {
+    try {
+      await api(`/api/loan-config/${key}`, { method: 'PUT', body: JSON.stringify({ configValue: value }) });
+      message.success(`Updated ${key}`);
+      await load();
+    } catch (e) {
+      message.error((e as Error).message);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -194,13 +208,63 @@ export default function LoanAdmin() {
                     { title: 'Name', dataIndex: 'name' },
                     { title: 'Status', dataIndex: 'status', width: 110, render: (s: string) => <Tag color={s === 'Done' ? 'green' : s === 'Running' ? 'blue' : 'default'}>{s}</Tag> },
                     { title: 'Last Run', dataIndex: 'lastRunAt', width: 170, render: (v: string) => (v ? new Date(v).toLocaleString() : '—') },
-                    { title: 'Action', width: 120, render: (_: unknown, r: BatchJob) => <Button size="small" icon={<PlayCircleOutlined />} onClick={() => act(`/api/batch-jobs/${r.id}/run`, 'Job executed')}>Run Now</Button> },
-                  ]}
-                />
-              </Card>
-            ),
-          },
-        ]}
+                      { title: 'Action', width: 120, render: (_: unknown, r: BatchJob) => <Button size="small" icon={<PlayCircleOutlined />} onClick={() => act(`/api/batch-jobs/${r.id}/run`, 'Job executed')}>Run Now</Button> },
+                    ]}
+                  />
+                </Card>
+              ),
+            },
+            {
+              key: 'config',
+              label: 'Loan Config',
+              children: (
+                <Card title="Loan Configuration Parameters">
+                  <Table
+                    rowKey="id"
+                    dataSource={config}
+                    pagination={false}
+                    columns={[
+                      { title: 'Group', dataIndex: 'configGroup', width: 130, render: (g: string) => <Tag>{g}</Tag> },
+                      { title: 'Key', dataIndex: 'configKey', width: 260 },
+                      { title: 'Description', dataIndex: 'description' },
+                      {
+                        title: 'Value', dataIndex: 'configValue', width: 200,
+                        render: (v: string, r: { configKey: string }) => (
+                          <Input
+                            defaultValue={v}
+                            onPressEnter={(e) => saveConfig(r.configKey, (e.target as HTMLInputElement).value)}
+                            onBlur={(e) => { if (e.target.value !== v) saveConfig(r.configKey, e.target.value); }}
+                          />
+                        ),
+                      },
+                    ]}
+                  />
+                </Card>
+              ),
+            },
+            {
+              key: 'prediction',
+              label: 'Repayment Prediction',
+              children: (
+                <Card title="AI Repayment Prediction & Portfolio Risk">
+                  <Table
+                    rowKey="loanNo"
+                    dataSource={predictions}
+                    pagination={{ pageSize: 10, showSizeChanger: false }}
+                    columns={[
+                      { title: 'Loan', dataIndex: 'loanNo', width: 130 },
+                      { title: 'Member', dataIndex: 'member' },
+                      { title: 'Balance', dataIndex: 'balance', align: 'right' as const, render: (v: number) => fmtETB(v) },
+                      { title: 'Overdue', dataIndex: 'overdueDays', align: 'right' as const, render: (v: number) => <Tag color={v > 0 ? 'red' : 'green'}>{v}d</Tag> },
+                      { title: 'AI Score', dataIndex: 'aiScore', align: 'right' as const },
+                      { title: 'PD %', dataIndex: 'aiPdPct', align: 'right' as const, render: (v: number) => `${v}%` },
+                      { title: 'Guidance', dataIndex: 'guidance' },
+                    ]}
+                  />
+                </Card>
+              ),
+            },
+          ]}
       />
 
       {/* Committee modal */}

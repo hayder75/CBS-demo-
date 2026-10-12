@@ -57,4 +57,42 @@ public class PaymentController {
         int count = service.massTransfer(typed, principal == null ? "System" : principal.name());
         return Map.of("posted", count);
     }
+
+    /**
+     * FRANC-style authorization categories. Returns the 15 transaction families with
+     * pending counts so the checker can drill into each queue.
+     */
+    @GetMapping("/authorize/categories")
+    public List<Map<String, Object>> authorizeCategories() {
+        record Cat(String key, String name, String description, List<String> kinds) {}
+        List<Cat> cats = List.of(
+                new Cat("CUSTOMER_DEPOSIT", "Customer Deposits", "Deposits funds into member accounts", List.of("DEPOSIT")),
+                new Cat("CUSTOMER_WITHDRAWAL", "Customer Withdrawals", "Withdrawals from member accounts", List.of("WITHDRAWAL")),
+                new Cat("SHARE_WITHDRAWAL", "Share Withdrawals", "Withdrawal of shares from member accounts", List.of("SHARE_WITHDRAWAL")),
+                new Cat("SHARE_TRANSFER", "Share Transfers", "Movement of shares between member accounts", List.of("SHARE_TRANSFER")),
+                new Cat("CUSTOMER_ADJUSTMENT", "Customer Adjustments", "Period-end corrections to member balances", List.of("ADJUSTMENT", "CUSTOMER_ADJUSTMENT")),
+                new Cat("OUTGOING_CLAIM", "Outgoing Claims", "Branch transferring funds to another branch GL", List.of("BRANCH_CLAIM", "OUTGOING_CLAIM")),
+                new Cat("TILL", "Till Transactions", "Cash movement within the till network", List.of("TILL")),
+                new Cat("RECEIPT_VOUCHER", "Receipt Voucher", "Incoming receipt posted to the GL", List.of("RECEIPT_VOUCHER")),
+                new Cat("MANUAL_DEPOSIT", "Manual Deposits/Credits", "Direct credit to a GL account", List.of("MANUAL_DEPOSIT")),
+                new Cat("MANUAL_WITHDRAWAL", "Manual Withdrawals/Debits", "Direct debit from a GL account", List.of("MANUAL_WITHDRAWAL")),
+                new Cat("ACCOUNT_TRANSFER", "Account Transfers", "Transfer between accounts within the organisation", List.of("TRANSFER", "ACCOUNT_TRANSFER")),
+                new Cat("MASS_TRANSFER", "Mass Transfers", "One-to-many / many-to-many transfers", List.of("MASS", "MASS_TRANSFER")),
+                new Cat("MANUAL_ADJUSTMENT", "Manual Adjustments", "Period-end GL corrections", List.of("MANUAL_ADJUSTMENT")),
+                new Cat("INCOMING_CLAIM", "Incoming Claims", "Branch claiming funds owed by another branch GL", List.of("INCOMING_CLAIM")),
+                new Cat("PAYMENT_VOUCHER", "Payment Voucher", "Outgoing payment settled through the GL", List.of("PAYMENT_VOUCHER"))
+        );
+        List<Payment> pending = service.byStatus("Pending");
+        List<Map<String, Object>> out = new java.util.ArrayList<>();
+        for (Cat c : cats) {
+            long count = pending.stream().filter(p -> c.kinds().contains(p.getKind())).count();
+            out.add(Map.of(
+                    "key", c.key(),
+                    "name", c.name(),
+                    "description", c.description(),
+                    "kinds", c.kinds(),
+                    "pending", count));
+        }
+        return out;
+    }
 }
