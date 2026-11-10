@@ -22,7 +22,6 @@ import {
   FundOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
@@ -137,7 +136,7 @@ export default function Finance() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Finance"
         subtitle="General ledger, financial statements and fixed asset register"
@@ -485,6 +484,6 @@ export default function Finance() {
           </Form.Item>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

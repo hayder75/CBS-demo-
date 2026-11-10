@@ -25,7 +25,6 @@ import {
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { StatCard } from '../components/StatCard';
@@ -483,7 +482,7 @@ export default function BankReconciliation() {
   );
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Bank Reconciliation"
         subtitle="Bank accounts, transaction matching and statement reconciliation"
@@ -669,6 +668,6 @@ export default function BankReconciliation() {
           </Typography.Text>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

@@ -25,7 +25,6 @@ import {
   PlusOutlined,
   RiseOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
 import { colors } from '../theme';
@@ -120,7 +119,7 @@ export default function Accounting() {
     .map((a) => ({ ...a, amount: Math.abs(a.balance) }));
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Accounting"
         subtitle="General ledger, trial balance and financial statements"
@@ -368,7 +367,7 @@ export default function Accounting() {
           </Typography.Text>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }
 

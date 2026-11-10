@@ -15,7 +15,6 @@ import {
   message,
 } from 'antd';
 import { BankOutlined, DollarOutlined, PlusOutlined, WalletOutlined, WarningOutlined } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
@@ -86,7 +85,7 @@ export default function CashOps() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Cash Operations"
         subtitle="Teller tills, vault position and cash movements"
@@ -280,6 +279,6 @@ export default function CashOps() {
           </Form.Item>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

@@ -23,7 +23,6 @@ import {
   DollarOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
@@ -166,7 +165,7 @@ export default function Registration() {
     paymentModes.filter((m) => m.status === 'Pending').length;
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Registration"
         subtitle="Customer accounts, share holdings, vaults, payment modes and currencies"
@@ -469,6 +468,6 @@ export default function Registration() {
           </Form.Item>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

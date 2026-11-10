@@ -25,7 +25,6 @@ import {
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
@@ -294,7 +293,7 @@ export default function SystemOps() {
   ];
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="System Operations"
         subtitle="Database backups, cache control, scheduler jobs and platform health"
@@ -483,6 +482,6 @@ export default function SystemOps() {
           },
         ]}
       />
-    </ProCard>
+    </div>
   );
 }

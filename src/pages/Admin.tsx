@@ -35,7 +35,6 @@ import {
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
@@ -155,7 +154,7 @@ export default function Admin() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Administration"
         subtitle="Organisation, branch network, users & access, configuration and audit"
@@ -555,7 +554,7 @@ export default function Admin() {
           />
         )}
       </Modal>
-    </ProCard>
+    </div>
   );
 }
 

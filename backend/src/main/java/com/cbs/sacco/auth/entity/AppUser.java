@@ -40,4 +40,16 @@ public class AppUser {
 
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
+
+    @Column(length = 32)
+    private String phone;
+
+    @Column(name = "mfa_enabled", nullable = false)
+    private boolean mfaEnabled = true;
+
+    @Column(name = "failed_attempts", nullable = false)
+    private int failedAttempts = 0;
+
+    @Column(name = "locked_until")
+    private Instant lockedUntil;
 }

@@ -34,6 +34,9 @@ export default function AppLayout() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { t } = useI18n();
+  const demoMode =
+    import.meta.env.VITE_USE_MOCK === 'true' ||
+    (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK !== 'false');
 
   const visibleModules = useMemo(
     () => navModules.filter((m) => user && m.roles.includes(user.role)),
@@ -72,8 +75,7 @@ export default function AppLayout() {
         disabled: true,
       },
       { type: 'divider', key: 'divider-0' },
-      ...users
-        .filter((u) => u.id !== user.id)
+      ...(demoMode ? users.filter((u) => u.id !== user.id) : [])
         .map((u) => ({
           key: `role:${u.role}`,
           label: (

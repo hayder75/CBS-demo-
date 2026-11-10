@@ -18,7 +18,6 @@ import {
   FileTextOutlined,
   TableOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { parseCsv, downloadCsv } from '../utils/csv';
@@ -82,7 +81,7 @@ export default function DataMigration() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Data Migration"
         subtitle={`Migrate legacy data using structured templates. Columns: ${templates[active].columns.join(', ')}.`}
@@ -203,6 +202,6 @@ export default function DataMigration() {
           </Card>
         </Col>
       </Row>
-    </ProCard>
+    </div>
   );
 }

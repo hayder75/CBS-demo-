@@ -13,7 +13,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { api } from '../api/client';
-import { useAuth } from '../context/AuthContext';
+import { MfaRequiredError, useAuth } from '../context/AuthContext';
 import type { Role } from '../types';
 import { colors } from '../theme';
 
@@ -39,7 +39,7 @@ const apiStatus = (error: unknown): number | undefined => {
 };
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, verifyMfa } = useAuth();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<Role>('MANAGER');
   const [loading, setLoading] = useState(false);
@@ -50,28 +50,47 @@ export default function Login() {
   const [challengeId, setChallengeId] = useState('');
   const [devOtp, setDevOtp] = useState('');
   const [pendingUsername, setPendingUsername] = useState('');
+  const [mfaUser, setMfaUser] = useState<string | null>(null);
+  const [pendingPassword, setPendingPassword] = useState('');
+  const demoMode =
+    import.meta.env.VITE_USE_MOCK === 'true' ||
+    (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK !== 'false');
 
-  const doLogin = async (username: string) => {
+  const doLogin = async (username: string, password?: string) => {
     setLoading(true);
+    const resolved = username || (autoRole ? 'demo' : 'manager');
+    const secret = (password ?? '').trim() || (demoMode ? 'demo123' : '');
+    if (!secret) {
+      message.warning('Enter your password');
+      setLoading(false);
+      return;
+    }
     try {
-      await login(username || (autoRole ? 'demo' : 'manager'), selectedRole);
+      await login(resolved, selectedRole, secret);
       message.success(`Logged in as ${roles.find((r) => r.role === selectedRole)?.label}`);
       navigate('/');
-    } catch {
+    } catch (error) {
+      if (error instanceof MfaRequiredError) {
+        setMfaUser(error.username ?? resolved);
+        setPendingPassword(secret);
+        setStep('otp');
+        message.info('Enter the verification code sent to your phone');
+        return;
+      }
       message.error('Login failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const onCredentials = async ({ username }: { username?: string }) => {
+  const onCredentials = async ({ username, password }: { username?: string; password?: string }) => {
     if (!captcha) {
       message.warning("Please confirm you're not a robot");
       return;
     }
     const resolved = (username ?? '').trim() || (autoRole ? 'demo' : 'manager');
     if (!twoFactor) {
-      await doLogin(resolved);
+      await doLogin(resolved, password);
       return;
     }
     setLoading(true);
@@ -100,6 +119,13 @@ export default function Login() {
     }
     setLoading(true);
     try {
+      if (mfaUser) {
+        await verifyMfa(mfaUser, code);
+        setMfaUser(null);
+        message.success('Signed in with multi-factor authentication');
+        navigate('/');
+        return;
+      }
       await api('/api/auth/2fa/verify', {
         method: 'POST',
         body: JSON.stringify({ challengeId, otp: code }),
@@ -122,6 +148,15 @@ export default function Login() {
   const onResend = async () => {
     setLoading(true);
     try {
+      if (mfaUser) {
+        try {
+          await login(mfaUser, selectedRole, pendingPassword);
+        } catch (error) {
+          if (!(error instanceof MfaRequiredError)) throw error;
+        }
+        message.success('A new verification code was sent');
+        return;
+      }
       const res = await api<{ devOtp: string }>('/api/auth/2fa/resend', {
         method: 'POST',
         body: JSON.stringify({ challengeId }),
@@ -233,7 +268,7 @@ export default function Login() {
 
               <Form
                 layout="vertical"
-                onFinish={(values: { username?: string }) => onCredentials(values)}
+                onFinish={(values: { username?: string; password?: string }) => onCredentials(values)}
                 style={{ marginTop: 24 }}
               >
                 <Row gutter={[10, 10]}>
@@ -273,6 +308,14 @@ export default function Login() {
                   <Input
                     prefix={<UserOutlined style={{ color: '#98a2b3' }} />}
                     placeholder="Username (or leave empty for demo)"
+                    size="large"
+                  />
+                </Form.Item>
+
+                <Form.Item name="password" style={{ marginBottom: 12 }}>
+                  <Input.Password
+                    prefix={<LockOutlined style={{ color: '#98a2b3' }} />}
+                    placeholder="Password (demo: demo123)"
                     size="large"
                   />
                 </Form.Item>

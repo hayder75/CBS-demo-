@@ -25,7 +25,6 @@ import {
   TransactionOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
@@ -165,7 +164,7 @@ export default function Payments() {
   const totalVolume = payments.reduce((s, p) => s + p.amount, 0);
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Payments"
         subtitle="Deposits, withdrawals, transfers and maker-checker authorization"
@@ -502,6 +501,6 @@ export default function Payments() {
           </Space>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

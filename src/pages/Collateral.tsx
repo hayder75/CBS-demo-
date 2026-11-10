@@ -29,7 +29,6 @@ import {
   UploadOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
@@ -117,7 +116,7 @@ export default function Collateral() {
   );
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       {expired.length > 0 && (
         <Alert
           type="warning"
@@ -356,6 +355,6 @@ export default function Collateral() {
           </Typography.Text>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

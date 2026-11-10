@@ -33,7 +33,6 @@ import {
   ThunderboltOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { useMembers } from '../context/MembersContext';
@@ -367,7 +366,7 @@ export default function MemberLifecycle() {
         : '';
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Member Lifecycle"
         subtitle="Custom fields, dormancy control and member exit workflows"
@@ -891,6 +890,6 @@ export default function MemberLifecycle() {
           </Space>
         )}
       </Drawer>
-    </ProCard>
+    </div>
   );
 }

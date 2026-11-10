@@ -6,7 +6,6 @@ import {
   ExclamationCircleOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
 import { colors } from '../theme';
@@ -45,7 +44,7 @@ export default function CheckOff() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Check-Off"
         subtitle="Employer deduction batches, reconciliation and allocation priority"
@@ -188,6 +187,6 @@ export default function CheckOff() {
           />
         </Space>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

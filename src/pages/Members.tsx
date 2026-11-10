@@ -30,7 +30,6 @@ import {
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
 import { ExportExcelButton } from '../components/ExportExcelButton';
@@ -227,7 +226,7 @@ export default function Members() {
   ];
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Members"
         subtitle="Member registry, statuses and balances across all branches"
@@ -536,6 +535,6 @@ export default function Members() {
         </Typography.Paragraph>
         <Input.TextArea rows={6} value={importJson} onChange={(e) => setImportJson(e.target.value)} />
       </Modal>
-    </ProCard>
+    </div>
   );
 }

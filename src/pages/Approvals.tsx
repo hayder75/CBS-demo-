@@ -6,7 +6,6 @@ import {
   CloseCircleOutlined,
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
@@ -38,7 +37,7 @@ export default function Approvals() {
   const pendingValue = pending.reduce((s, i) => s + i.amount, 0);
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Approvals"
         subtitle="Maker-checker queue for restricted disbursements and financial adjustments"
@@ -139,6 +138,6 @@ export default function Approvals() {
           ]}
         />
       </Card>
-    </ProCard>
+    </div>
   );
 }

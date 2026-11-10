@@ -26,7 +26,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { ProCard } from '@ant-design/pro-components';
 import { api } from '../api/client';
 import type { ApprovalItem, Kpi, Notification } from '../types';
 import { fmtETB } from '../utils/format';
@@ -63,7 +62,7 @@ export default function Dashboard() {
   const trendTotal = trend.reduce((s, t) => s + t.deposits, 0);
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Overview"
         subtitle="SACCO performance at a glance across branches and portfolios"
@@ -341,6 +340,6 @@ export default function Dashboard() {
           </Card>
         </Col>
       </Row>
-    </ProCard>
+    </div>
   );
 }

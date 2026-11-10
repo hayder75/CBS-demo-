@@ -25,7 +25,6 @@ import {
   SafetyCertificateOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import type { Dayjs } from 'dayjs';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
@@ -174,7 +173,7 @@ export default function FeeWaivers() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Fee Waivers"
         subtitle="Maker-checker requests to waive charges, fees and penalties"
@@ -398,6 +397,6 @@ export default function FeeWaivers() {
           </Form.Item>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

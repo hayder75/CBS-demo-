@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button, Card, Col, Empty, Input, List, Row, Segmented, Space, Spin, Tag, Typography, message } from 'antd';
 import { FileSearchOutlined, SearchOutlined } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { api } from '../api/client';
 import { colors } from '../theme';
@@ -41,7 +40,7 @@ export default function Search() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader title="Search" subtitle="Find customers, accounts, shares, GL accounts, documents, transactions and loans" />
 
       <Card>
@@ -87,6 +86,6 @@ export default function Search() {
           </Card>
         </Col>
       </Row>
-    </ProCard>
+    </div>
   );
 }

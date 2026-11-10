@@ -27,7 +27,6 @@ import {
   StopOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
@@ -183,7 +182,7 @@ export default function TermDeposits() {
       : 0;
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Term Deposits"
         subtitle="Fixed-term savings (TFS) register, maturity and early-break management"
@@ -441,6 +440,6 @@ export default function TermDeposits() {
           </div>
         )}
       </Modal>
-    </ProCard>
+    </div>
   );
 }

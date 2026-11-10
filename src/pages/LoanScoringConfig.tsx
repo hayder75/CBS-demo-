@@ -17,7 +17,6 @@ import {
   message,
 } from 'antd';
 import { ExperimentOutlined, SaveOutlined } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { api } from '../api/client';
@@ -94,7 +93,7 @@ export default function LoanScoringConfig() {
   const decisionColor: Record<string, string> = { AUTO_APPROVE: 'green', REFER: 'gold', DECLINE: 'red' };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Loan Scoring Configuration"
         subtitle="Tune the explainable scorecard — weights, thresholds, bands — and simulate decisions"
@@ -226,6 +225,6 @@ export default function LoanScoringConfig() {
           )}
         </Col>
       </Row>
-    </ProCard>
+    </div>
   );
 }

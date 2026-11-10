@@ -28,7 +28,6 @@ import {
   TagsOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
@@ -196,7 +195,7 @@ export default function Expenses() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Expenses"
         subtitle="Expense categories, GL mapping and posting with reversal control"
@@ -482,6 +481,6 @@ export default function Expenses() {
           </Typography.Text>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

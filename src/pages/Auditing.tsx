@@ -19,7 +19,6 @@ import {
   FileSearchOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
@@ -121,7 +120,7 @@ export default function Auditing() {
   );
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Auditing"
         subtitle="Maker transaction verification, discrepancy follow-up and head-office consolidation"
@@ -218,6 +217,6 @@ export default function Auditing() {
       >
         <Input.TextArea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Follow-up note..." />
       </Modal>
-    </ProCard>
+    </div>
   );
 }

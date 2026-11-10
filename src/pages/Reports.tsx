@@ -24,7 +24,6 @@ import {
   PrinterOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import type { Dayjs } from 'dayjs';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
@@ -153,7 +152,7 @@ export default function Reports() {
   }, [result]);
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Reports"
         subtitle="Standard, operational and statutory reports — filter, preview and export"
@@ -309,6 +308,6 @@ export default function Reports() {
           </Card>
         </Col>
       </Row>
-    </ProCard>
+    </div>
   );
 }

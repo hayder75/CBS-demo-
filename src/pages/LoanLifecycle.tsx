@@ -27,7 +27,6 @@ import {
   TransactionOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
@@ -230,7 +229,7 @@ export default function LoanLifecycle() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Loan Lifecycle"
         subtitle="Restructuring, write-offs, recoveries, provisioning and automated repayment collection"
@@ -247,7 +246,7 @@ export default function LoanLifecycle() {
             key: 'restructures',
             label: 'Restructures',
             children: (
-              <ProCard ghost direction="column" gutter={[20, 20]}>
+              <div className="page-shell">
                 <Row gutter={[20, 20]}>
                   <Col xs={24} sm={12} xl={6}>
                     <StatCard
@@ -362,7 +361,7 @@ export default function LoanLifecycle() {
                     ]}
                   />
                 </Card>
-              </ProCard>
+              </div>
             ),
           },
           {
@@ -469,7 +468,7 @@ export default function LoanLifecycle() {
             key: 'provisions',
             label: 'Provisions',
             children: (
-              <ProCard ghost direction="column" gutter={[20, 20]}>
+              <div className="page-shell">
                 <Card
                   title="Provision Policy"
                   extra={
@@ -535,7 +534,7 @@ export default function LoanLifecycle() {
                     ]}
                   />
                 </Card>
-              </ProCard>
+              </div>
             ),
           },
           {
@@ -671,6 +670,6 @@ export default function LoanLifecycle() {
           </Form.Item>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

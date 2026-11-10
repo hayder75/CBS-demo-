@@ -30,7 +30,6 @@ import {
   YAxis,
 } from 'recharts';
 import { CheckCircleOutlined, CloseCircleOutlined, RobotOutlined, ThunderboltOutlined } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { api } from '../api/client';
 import type { Loan } from '../types';
@@ -128,7 +127,7 @@ export default function LoanDecision() {
   const features = result?.features ?? {};
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Loan Decision"
         subtitle="AI-assisted, explainable credit assessment — score, risk grade, recommendation"
@@ -275,6 +274,6 @@ export default function LoanDecision() {
           </Form.Item>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

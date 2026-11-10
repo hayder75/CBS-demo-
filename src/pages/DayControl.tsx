@@ -23,7 +23,6 @@ import {
   ShopOutlined,
   StepForwardOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
@@ -185,7 +184,7 @@ export default function DayControl() {
   );
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Business Date & Day Control"
         subtitle="Branch close-of-business, end-of-day batch processing and business date rollover"
@@ -383,6 +382,6 @@ export default function DayControl() {
           </Card>
         </>
       )}
-    </ProCard>
+    </div>
   );
 }

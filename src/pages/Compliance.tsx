@@ -38,7 +38,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
@@ -179,14 +178,14 @@ export default function Compliance() {
 
   if (loading && !policy) {
     return (
-      <ProCard ghost direction="column" gutter={[20, 20]}>
+      <div className="page-shell">
         <PageHeader title="Compliance" subtitle="Prudential ratios, exposures and liquidity monitoring" />
         <Card>
           <div style={{ textAlign: 'center', padding: 48 }}>
             <Spin size="large" />
           </div>
         </Card>
-      </ProCard>
+      </div>
     );
   }
 
@@ -515,7 +514,7 @@ export default function Compliance() {
   );
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Compliance"
         subtitle="Prudential ratios, large exposures, profit allocation and cash flow monitoring"
@@ -619,6 +618,6 @@ export default function Compliance() {
           </Typography.Text>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

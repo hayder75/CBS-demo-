@@ -24,7 +24,6 @@ import {
   PlusOutlined,
   SaveOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
@@ -154,7 +153,7 @@ export default function Savings() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Savings"
         subtitle="Savings products, deposit and withdrawal activity across the SACCO"
@@ -387,6 +386,6 @@ export default function Savings() {
           </Typography.Text>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

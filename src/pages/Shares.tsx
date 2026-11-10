@@ -21,7 +21,6 @@ import {
   SwapOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
@@ -72,7 +71,7 @@ export default function Shares() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Shares"
         subtitle="Share capital, transfers and dividend distribution"
@@ -224,6 +223,6 @@ export default function Shares() {
           </Typography.Text>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

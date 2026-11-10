@@ -22,7 +22,6 @@ import {
   PlusOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
@@ -82,7 +81,7 @@ export default function LoanAdmin() {
   const act = async (path: string, msg: string) => { await api(path, { method: 'POST' }); message.success(msg); await load(); };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Loan Administration"
         subtitle="Credit committees, loan categories, groups and batch processing"
@@ -312,6 +311,6 @@ export default function LoanAdmin() {
           </Row>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

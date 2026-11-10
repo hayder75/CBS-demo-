@@ -29,7 +29,6 @@ import {
   TrophyOutlined,
   UserAddOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
 import { colors } from '../theme';
@@ -280,7 +279,7 @@ export default function Referrals() {
   const totalRewards = report?.rewardsPaid ?? 0;
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Referral Programme"
         subtitle="Member referral codes, qualification tracking and reward payouts"
@@ -782,6 +781,6 @@ export default function Referrals() {
           </Form.Item>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

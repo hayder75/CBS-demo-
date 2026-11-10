@@ -28,7 +28,6 @@ import {
   ThunderboltOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { CurrencyInput } from '../components/CurrencyInput';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
@@ -160,7 +159,7 @@ export default function Products() {
   ];
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Products"
         subtitle="Savings, share and charge products with verification workflow"
@@ -512,6 +511,6 @@ export default function Products() {
           </Row>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

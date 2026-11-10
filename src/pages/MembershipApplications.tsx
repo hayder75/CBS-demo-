@@ -25,7 +25,6 @@ import {
   SearchOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
@@ -184,7 +183,7 @@ export default function MembershipApplications() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Membership Applications"
         subtitle="Join SACCO, collect payment, approve and auto-provision membership accounts"
@@ -501,6 +500,6 @@ export default function MembershipApplications() {
           </Form.Item>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

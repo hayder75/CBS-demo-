@@ -4,6 +4,7 @@ import com.cbs.sacco.auth.entity.AppUser;
 import com.cbs.sacco.auth.entity.Role;
 import com.cbs.sacco.auth.repo.RoleRepository;
 import com.cbs.sacco.auth.repo.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -17,11 +18,14 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final String seedPassword;
 
-    public DataSeeder(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public DataSeeder(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
+                      @Value("${app.security.seed-password:demo123}") String seedPassword) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.seedPassword = seedPassword;
     }
 
     @Override
@@ -42,7 +46,7 @@ public class DataSeeder implements CommandLineRunner {
                 Role role = roleRepository.findByCode(seed.role).orElseThrow();
                 AppUser user = new AppUser();
                 user.setUsername(seed.username);
-                user.setPasswordHash(passwordEncoder.encode("demo123"));
+                user.setPasswordHash(passwordEncoder.encode(seedPassword));
                 user.setFullName(seed.name);
                 user.setTitle(seed.title);
                 user.setBranch(seed.branch);

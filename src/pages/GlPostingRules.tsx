@@ -23,7 +23,6 @@ import {
   StopOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { colors } from '../theme';
@@ -177,7 +176,7 @@ export default function GlPostingRules() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="GL Posting Rules"
         subtitle="Product-to-chart-of-accounts mapping for automatic journal posting"
@@ -367,6 +366,6 @@ export default function GlPostingRules() {
           </Typography.Text>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

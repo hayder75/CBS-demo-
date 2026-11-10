@@ -27,7 +27,6 @@ import {
   ReloadOutlined,
   SaveOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { SmsTestCard } from '../components/SmsTestCard';
@@ -205,7 +204,7 @@ export default function NotificationTemplates() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Notification Templates"
         subtitle="Email and SMS message templates plus delivery gateway configuration"
@@ -465,6 +464,6 @@ export default function NotificationTemplates() {
           </Typography.Text>
         </Form>
       </Modal>
-    </ProCard>
+    </div>
   );
 }

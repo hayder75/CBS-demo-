@@ -1,13 +1,17 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
+  forward-headers-strategy: framework
+  error:
+    include-stacktrace: never
+    include-message: never
 
 spring:
   application:
     name: sacco-backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/cbs
-    username: cbs_app
-    password: cbs_demo_password
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/cbs}
+    username: ${DB_USERNAME:cbs_app}
+    password: ${DB_PASSWORD:cbs_demo_password}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -23,8 +27,17 @@ spring:
 
 app:
   jwt:
-    secret: "cbs-general-demo-secret-key-change-me-in-production-0123456789abcdef"
-    expiration-ms: 86400000
+    secret: ${JWT_SECRET:cbs-general-demo-secret-key-change-me-in-production-0123456789abcdef}
+    expiration-ms: ${JWT_EXPIRATION_MS:1800000}
+  security:
+    require-mfa: ${REQUIRE_MFA:false}
+    max-failed-attempts: ${MAX_FAILED_ATTEMPTS:5}
+    lock-minutes: ${LOCK_MINUTES:15}
+    require-https: ${REQUIRE_HTTPS:false}
+    production: ${PRODUCTION:false}
+    seed-password: ${SEED_PASSWORD:demo123}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
   afro-sms:
     enabled: ${AFRO_SMS_ENABLED:false}
     api-key: ${AFRO_SMS_API_KEY:}

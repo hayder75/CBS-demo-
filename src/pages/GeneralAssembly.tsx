@@ -25,7 +25,6 @@ import {
   SafetyCertificateOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { ProCard } from '@ant-design/pro-components';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
 import { api } from '../api/client';
@@ -164,7 +163,7 @@ export default function GeneralAssembly() {
   };
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="General Assembly & Dividends"
         subtitle="Resolutions on surplus distribution, dividends and statutory reserves"
@@ -447,6 +446,6 @@ export default function GeneralAssembly() {
           </Descriptions>
         )}
       </Modal>
-    </ProCard>
+    </div>
   );
 }

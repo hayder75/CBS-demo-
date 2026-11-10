@@ -30,7 +30,6 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
-import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
 import { api } from '../api/client';
@@ -242,7 +241,7 @@ export default function AuditTrail() {
   );
 
   return (
-    <ProCard ghost direction="column" gutter={[20, 20]}>
+    <div className="page-shell">
       <PageHeader
         title="Audit Trail"
         subtitle="Immutable, hash-chained record of every change with field-level before and after values"
@@ -400,6 +399,6 @@ export default function AuditTrail() {
           redacted before they are written.
         </Typography.Paragraph>
       </Card>
-    </ProCard>
+    </div>
   );
 }
