@@ -30,6 +30,7 @@ import {
 import { ProCard } from '@ant-design/pro-components';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
+import { SmsTestCard } from '../components/SmsTestCard';
 import { api } from '../api/client';
 import type { GatewaySettings, NotificationTemplate } from '../types';
 import { colors } from '../theme';
@@ -314,6 +315,7 @@ export default function NotificationTemplates() {
             key: 'gateway',
             label: 'Gateway Settings',
             children: (
+              <>
               <Card title="Gateway Settings">
                 <Form
                   form={settingsForm}
@@ -400,6 +402,8 @@ export default function NotificationTemplates() {
                   </Space>
                 </Form>
               </Card>
+              <SmsTestCard />
+              </>
             ),
           },
         ]}

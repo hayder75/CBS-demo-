@@ -1014,3 +1014,37 @@ export const PERMISSION_GROUPS: { group: string; permissions: string[] }[] = [
   { group: 'Finance', permissions: ['finance', 'payments'] },
   { group: 'Oversight', permissions: ['reports', 'audit', 'admin'] },
 ];
+
+// ============================================================
+// SMS / OTP (Afro SMS)
+// ============================================================
+
+export interface SmsGatewayStatus {
+  enabled: boolean;
+  provider: string;
+  sender: string;
+  from: string;
+  otpLength: number;
+  otpTtlSeconds: number;
+}
+
+export interface SmsLogEntry {
+  id: string;
+  phone: string;
+  purpose: string;
+  status: 'Sent' | 'Failed' | 'Verified';
+  detail: string;
+  createdAt: string;
+}
+
+export interface OtpSendResult {
+  sent: boolean;
+  phone: string;
+  expiresIn: number;
+  devOtp?: string;
+}
+
+export interface OtpVerifyResult {
+  verified: boolean;
+  phone: string;
+}

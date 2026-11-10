@@ -25,6 +25,17 @@ app:
   jwt:
     secret: "cbs-general-demo-secret-key-change-me-in-production-0123456789abcdef"
     expiration-ms: 86400000
+  afro-sms:
+    enabled: ${AFRO_SMS_ENABLED:false}
+    api-key: ${AFRO_SMS_API_KEY:}
+    from: ${AFRO_SMS_FROM:}
+    sender: ${AFRO_SMS_SENDER:Anchor}
+    base-url: https://api.afromessage.com/api
+    otp-length: 6
+    otp-ttl-seconds: 300
+    max-attempts: 5
+    resend-seconds: 60
+    max-per-hour: 5
 
 logging:
   level:

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Alert,
   Avatar,
   Button,
   Card,
@@ -13,6 +14,7 @@ import {
   Segmented,
   Select,
   Space,
+  Switch,
   Table,
   Tag,
   Typography,
@@ -24,6 +26,7 @@ import {
   DollarOutlined,
   DownloadOutlined,
   PlusOutlined,
+  SafetyCertificateOutlined,
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -34,7 +37,7 @@ import dayjs from 'dayjs';
 import { FaydaIdInput, faydaValueFromEvent } from '../components/FaydaIdInput';
 import { useMembers } from '../context/MembersContext';
 import { api } from '../api/client';
-import type { Member } from '../types';
+import type { Member, OtpSendResult, OtpVerifyResult } from '../types';
 import { fmtETB, fmtDate } from '../utils/format';
 
 const statusColor: Record<Member['status'], string> = {
@@ -51,6 +54,66 @@ export default function Members() {
   const [createOpen, setCreateOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+  const [otpRequired, setOtpRequired] = useState(true);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpDevCode, setOtpDevCode] = useState<string | null>(null);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+
+  const resetOtp = () => {
+    setOtpSent(false);
+    setOtpVerified(false);
+    setOtpCode('');
+    setOtpDevCode(null);
+  };
+
+  const memberPhone = () => String(form.getFieldValue('phone') ?? '');
+
+  const sendOtp = async () => {
+    const phone = memberPhone();
+    if (!phone.trim()) {
+      message.warning('Enter the member phone number first');
+      return;
+    }
+    setSendingOtp(true);
+    try {
+      const result = await api<OtpSendResult>('/api/sms/otp/send', {
+        method: 'POST',
+        body: JSON.stringify({ phone, purpose: 'Member registration' }),
+      });
+      setOtpSent(true);
+      setOtpVerified(false);
+      setOtpDevCode(result.devOtp ?? null);
+      message.success(`Verification code sent to ${result.phone}`);
+    } catch (e) {
+      message.error((e as Error).message);
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const verifyOtp = async () => {
+    const phone = memberPhone();
+    if (!otpCode.trim()) {
+      message.warning('Enter the code sent to the phone');
+      return;
+    }
+    setVerifyingOtp(true);
+    try {
+      await api<OtpVerifyResult>('/api/sms/otp/verify', {
+        method: 'POST',
+        body: JSON.stringify({ phone, code: otpCode.trim() }),
+      });
+      setOtpVerified(true);
+      message.success('Phone number verified');
+    } catch (e) {
+      message.error((e as Error).message);
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
 
   interface KycRow { id: string | number; memberNo: string; fullName: string; gender: string; phone?: string; status: string; hasPhoto: boolean; hasSignature: boolean; kycStatus: string }
   const [kycFilter, setKycFilter] = useState('pending');
@@ -79,6 +142,10 @@ export default function Members() {
   };
 
   const createMember = async () => {
+    if (otpRequired && !otpVerified) {
+      message.warning('Verify the member phone number before registering');
+      return;
+    }
     const values = await form.validateFields();
     setSaving(true);
     try {
@@ -89,6 +156,7 @@ export default function Members() {
       setMembers((prev) => [created, ...prev]);
       setCreateOpen(false);
       form.resetFields();
+      resetOtp();
       message.success(`Member ${created.fullName} registered as ${created.memberNo}`);
     } catch (e) {
       message.error((e as Error).message);
@@ -134,7 +202,7 @@ export default function Members() {
         extra={
           <Space>
             <Button icon={<DownloadOutlined />}>Export</Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => { resetOtp(); setCreateOpen(true); }}>
               New Member
             </Button>
           </Space>
@@ -296,9 +364,10 @@ export default function Members() {
       <Modal
         title="Register New Member"
         open={createOpen}
-        onCancel={() => setCreateOpen(false)}
+        onCancel={() => { setCreateOpen(false); resetOtp(); }}
         onOk={createMember}
         okText="Register Member"
+        okButtonProps={{ disabled: otpRequired && !otpVerified }}
         confirmLoading={saving}
         width={640}
       >
@@ -365,6 +434,62 @@ export default function Members() {
               </Form.Item>
             </Col>
           </Row>
+
+          <div className="soft-panel" style={{ marginBottom: 14 }}>
+            <Space style={{ marginBottom: otpRequired ? 10 : 0 }} wrap>
+              <Switch
+                size="small"
+                checked={otpRequired}
+                onChange={(checked) => {
+                  setOtpRequired(checked);
+                  setOtpVerified(checked ? false : true);
+                  if (!checked) setOtpDevCode(null);
+                }}
+              />
+              <Typography.Text strong>SMS phone verification</Typography.Text>
+              {otpVerified && <Tag color="green">Verified</Tag>}
+            </Space>
+            {otpRequired && (
+              <>
+                <Space wrap>
+                  <Button
+                    icon={<SafetyCertificateOutlined />}
+                    loading={sendingOtp}
+                    disabled={otpVerified}
+                    onClick={sendOtp}
+                  >
+                    {otpSent ? 'Resend code' : 'Send code'}
+                  </Button>
+                  <Input
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="6-digit code"
+                    maxLength={6}
+                    style={{ width: 150 }}
+                    disabled={!otpSent || otpVerified}
+                  />
+                  <Button
+                    type="primary"
+                    loading={verifyingOtp}
+                    disabled={!otpSent || otpVerified}
+                    onClick={verifyOtp}
+                  >
+                    Verify
+                  </Button>
+                </Space>
+                {otpDevCode && !otpVerified && (
+                  <Alert
+                    style={{ marginTop: 10 }}
+                    type="info"
+                    showIcon
+                    message={`Demo code: ${otpDevCode}`}
+                    description="Afro SMS is simulated in this demo. In production the code is sent to the phone and never shown here."
+                  />
+                )}
+              </>
+            )}
+          </div>
+
           <Typography.Text type="secondary">
             Registering a member sets an Active status with zero balances; shares and savings are
             posted through their own workflows.

@@ -38,3 +38,8 @@ playwright/.cache/
 
 # Confidential third-party proposal documents (never commit)
 /files/
+
+# Local secrets (API keys, tokens). Never commit.
+.env
+.env.*
+!.env.example

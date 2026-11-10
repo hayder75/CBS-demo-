@@ -43,10 +43,7 @@ body {
 .cbs-sider {
   background: #fff;
   border-right: 1px solid var(--cbs-border);
-  position: fixed !important;
-  inset-block: 0;
-  inset-inline-start: 0;
-  z-index: 30;
+  z-index: 20;
 }
 
 .cbs-sider-inner {

@@ -84,6 +84,7 @@ import { loanLifecycleHandlers } from './modules/loanLifecycle';
 import { complianceHandlers } from './modules/compliance';
 import { systemOpsHandlers } from './modules/systemOps';
 import { twoFactorHandlers } from './modules/twoFactor';
+import { afroSmsHandlers } from './modules/afroSms';
 import { reportFrameworkHandlers } from './modules/reports';
 import { adminConsoleHandlers } from './modules/admin';
 import { scoringHandlers } from './modules/scoring';
@@ -966,6 +967,7 @@ export const handlers = [
   ...searchHandlers,
   ...gapHandlers,
   ...scoringHandlers,
+  ...afroSmsHandlers,
 ];
 
 export const reportRows = {
