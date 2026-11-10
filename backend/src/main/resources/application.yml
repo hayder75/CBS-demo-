@@ -29,7 +29,7 @@ app:
     enabled: ${AFRO_SMS_ENABLED:false}
     api-key: ${AFRO_SMS_API_KEY:}
     from: ${AFRO_SMS_FROM:}
-    sender: ${AFRO_SMS_SENDER:Anchor}
+    sender: ${AFRO_SMS_SENDER:}
     base-url: https://api.afromessage.com/api
     otp-length: 6
     otp-ttl-seconds: 300

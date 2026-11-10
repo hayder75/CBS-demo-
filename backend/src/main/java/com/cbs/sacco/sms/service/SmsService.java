@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -242,6 +243,15 @@ public class SmsService {
     }
 
     private static String failureDetail(Map<String, Object> body) {
+        Object response = body.get("response");
+        if (response instanceof Map<?, ?> map) {
+            Object errors = map.get("errors");
+            if (errors instanceof List<?> list && !list.isEmpty()) {
+                return String.valueOf(list.get(0));
+            }
+            Object message = map.get("message");
+            if (message != null) return String.valueOf(message);
+        }
         Object message = body.get("message");
         if (message != null) return String.valueOf(message);
         Object error = body.get("error");
