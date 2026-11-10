@@ -4,7 +4,7 @@
 **Document ID:** CBS-SEC-CM-2026-001  
 **Version:** 1.0  
 **Audit date:** 11 November 2026  
-**Code baseline:** commit `8b11844` (branch `hayder-update-FRA`)  
+**Code baseline:** commit `2b23823 (security hardening) + working tree` (branch `hayder-update-FRA`)  
 **Audit basis:** INSA Cybersecurity Audit Minimum Requirements, document OF/AEAD/001 — Compliance check list, areas 1–16 (52 checklist rows)  
 **Classification:** Internal / Confidential
 

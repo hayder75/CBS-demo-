@@ -2,7 +2,7 @@
 
 **System:** CBS General — Web-Based SACCO Core Banking / ERP Back Office  
 **Document ID:** CBS-SEC-SRS-2026-001 · **Version:** 1.0 · **Date:** 11 November 2026  
-**Code baseline:** commit `8b11844` · **Classification:** Internal / Confidential
+**Code baseline:** commit `2b23823 (security hardening) + working tree` · **Classification:** Internal / Confidential
 
 ---
 
