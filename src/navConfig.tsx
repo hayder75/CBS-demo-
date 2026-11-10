@@ -13,6 +13,7 @@ import {
   FileProtectOutlined,
   FileTextOutlined,
   FundOutlined,
+  GiftOutlined,
   IdcardOutlined,
   PartitionOutlined,
   PercentageOutlined,
@@ -64,6 +65,7 @@ export const navModules: NavModule[] = [
     items: [
       { path: '/members', key: 'nav.members', icon: <TeamOutlined />, roles: ALL },
       { path: '/membership-applications', key: 'nav.membership', icon: <IdcardOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER'] },
+      { path: '/referrals', key: 'nav.referral', icon: <GiftOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER'] },
     ],
   },
   {

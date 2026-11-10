@@ -85,6 +85,7 @@ import { complianceHandlers } from './modules/compliance';
 import { systemOpsHandlers } from './modules/systemOps';
 import { twoFactorHandlers } from './modules/twoFactor';
 import { afroSmsHandlers } from './modules/afroSms';
+import { referralHandlers } from './modules/referrals';
 import { reportFrameworkHandlers } from './modules/reports';
 import { adminConsoleHandlers } from './modules/admin';
 import { scoringHandlers } from './modules/scoring';
@@ -968,6 +969,7 @@ export const handlers = [
   ...gapHandlers,
   ...scoringHandlers,
   ...afroSmsHandlers,
+  ...referralHandlers,
 ];
 
 export const reportRows = {

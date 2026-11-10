@@ -1048,3 +1048,51 @@ export interface OtpVerifyResult {
   verified: boolean;
   phone: string;
 }
+
+// ============================================================
+// Referral programme
+// ============================================================
+
+export interface ReferralCode {
+  id: string;
+  code: string;
+  memberId: string;
+  memberName: string;
+  status: 'Active' | 'Disabled';
+  uses: number;
+  rewardAmount: number;
+  createdAt: string;
+}
+
+export interface ReferralRecord {
+  id: string;
+  code: string;
+  referrerName: string;
+  refereeName: string;
+  refereePhone: string;
+  status: 'Pending' | 'Qualified' | 'Rewarded' | 'Rejected';
+  rewardAmount: number;
+  createdAt: string;
+  qualifiedAt?: string;
+  rewardedAt?: string;
+  note?: string;
+}
+
+export interface ReferralSettings {
+  enabled: boolean;
+  rewardPerReferral: number;
+  minQualifyingDeposit: number;
+  rewardMode: 'Cash' | 'Savings';
+  updatedAt: string;
+}
+
+export interface ReferralReport {
+  totalReferrals: number;
+  pending: number;
+  qualified: number;
+  rewarded: number;
+  rejected: number;
+  conversionPct: number;
+  rewardsPaid: number;
+  topReferrers: { memberName: string; referrals: number; rewarded: number }[];
+}

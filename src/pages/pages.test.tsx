@@ -40,6 +40,7 @@ import LoanLifecycle from './LoanLifecycle';
 import Compliance from './Compliance';
 import Printables from './Printables';
 import SystemOps from './SystemOps';
+import Referrals from './Referrals';
 
 const server = setupServer(...handlers);
 const pending: Array<() => void> = [];
@@ -127,6 +128,7 @@ describe('All pages render + load data via API (mock-backed, no browser automati
     ['Compliance', <Compliance />, 'Compliance'],
     ['Printables', <Printables />, 'Printables'],
     ['SystemOps', <SystemOps />, 'System Operations'],
+    ['Referrals', <Referrals />, 'Referral'],
   ];
 
   for (const [name, element, expectedText] of cases) {
