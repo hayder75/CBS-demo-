@@ -28,10 +28,12 @@ import { ProCard } from '@ant-design/pro-components';
 import type { Dayjs } from 'dayjs';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
+import { ExportExcelButton } from '../components/ExportExcelButton';
 import { api } from '../api/client';
 import type { ReportCatalog, ReportColumn, ReportDefinition, ReportResult } from '../types';
 import { fmtETB } from '../utils/format';
 import { buildCsv, downloadCsv } from '../utils/csv';
+import type { ExcelSheet } from '../utils/excel';
 import { colors } from '../theme';
 
 const STATUS_OPTIONS = [
@@ -51,6 +53,12 @@ function cellValue(col: ReportColumn, value: unknown) {
   if (col.type === 'PERCENT' && typeof value === 'number') return `${value}%`;
   if (col.type === 'NUMBER' && typeof value === 'number') return value.toLocaleString();
   return String(value);
+}
+
+function excelColumnType(type: ReportColumn['type']): 'string' | 'number' | 'date' {
+  if (type === 'DATE') return 'date';
+  if (type === 'NUMBER' || type === 'MONEY' || type === 'PERCENT') return 'number';
+  return 'string';
 }
 
 export default function Reports() {
@@ -121,6 +129,21 @@ export default function Reports() {
     message.success('Report exported to CSV');
   };
 
+  const reportSheets = (): ExcelSheet[] =>
+    result
+      ? [
+          {
+            name: result.name,
+            columns: result.columns.map((column) => ({
+              header: column.label,
+              key: column.key,
+              type: excelColumnType(column.type),
+            })),
+            rows: result.rows,
+          },
+        ]
+      : [];
+
   const moneySummary = useMemo(() => {
     if (!result) return null;
     return result.columns.filter((c) => c.type === 'MONEY').slice(0, 3).map((c) => ({
@@ -145,6 +168,10 @@ export default function Reports() {
             <Button type="primary" icon={<DownloadOutlined />} disabled={!result} onClick={exportCsv}>
               Export CSV
             </Button>
+            <ExportExcelButton
+              fileName={`${result?.key.replace(/\//g, '-') ?? 'report'}.xlsx`}
+              sheets={reportSheets}
+            />
           </Space>
         }
       />

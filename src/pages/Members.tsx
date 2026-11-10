@@ -33,12 +33,14 @@ import {
 import { ProCard } from '@ant-design/pro-components';
 import { StatCard } from '../components/StatCard';
 import { PageHeader } from '../components/PageHeader';
+import { ExportExcelButton } from '../components/ExportExcelButton';
 import dayjs from 'dayjs';
 import { FaydaIdInput, faydaValueFromEvent } from '../components/FaydaIdInput';
 import { useMembers } from '../context/MembersContext';
 import { api } from '../api/client';
 import type { Member, OtpSendResult, OtpVerifyResult } from '../types';
 import { fmtETB, fmtDate } from '../utils/format';
+import type { ExcelSheet } from '../utils/excel';
 
 const statusColor: Record<Member['status'], string> = {
   Active: 'green',
@@ -194,6 +196,36 @@ export default function Members() {
     [members],
   );
 
+  const memberSheets = (): ExcelSheet[] => [
+    {
+      name: 'Member Registry',
+      columns: [
+        { header: 'Name', key: 'fullName', type: 'string' },
+        { header: 'Member No', key: 'memberNo', type: 'string' },
+        { header: 'Status', key: 'status', type: 'string' },
+        { header: 'Fayda ID', key: 'faydaId', type: 'string' },
+        { header: 'Phone', key: 'phone', type: 'string' },
+        { header: 'Employer', key: 'employer', type: 'string' },
+        { header: 'Joined', key: 'joinDate', type: 'date' },
+        { header: 'Shares', key: 'shareBalance', type: 'number' },
+        { header: 'Savings', key: 'savingsBalance', type: 'number' },
+        { header: 'Loan Outstanding', key: 'loanOutstanding', type: 'number' },
+      ],
+      rows: filtered.map((m) => ({
+        fullName: m.fullName,
+        memberNo: m.memberNo,
+        status: m.status,
+        faydaId: m.faydaId,
+        phone: m.phone,
+        employer: m.employer,
+        joinDate: m.joinDate,
+        shareBalance: m.shareBalance,
+        savingsBalance: m.savingsBalance,
+        loanOutstanding: m.loanOutstanding,
+      })),
+    },
+  ];
+
   return (
     <ProCard ghost direction="column" gutter={[20, 20]}>
       <PageHeader
@@ -202,6 +234,7 @@ export default function Members() {
         extra={
           <Space>
             <Button icon={<DownloadOutlined />}>Export</Button>
+            <ExportExcelButton fileName="member-registry.xlsx" sheets={memberSheets} />
             <Button type="primary" icon={<PlusOutlined />} onClick={() => { resetOtp(); setCreateOpen(true); }}>
               New Member
             </Button>

@@ -1117,3 +1117,97 @@ export interface ReferralReport {
   rewardsPaid: number;
   topReferrers: { memberName: string; referrals: number; rewarded: number }[];
 }
+
+// ============================================================
+// Member lifecycle: custom fields, exit checklist, dormancy
+// ============================================================
+
+export type CustomFieldType = 'Text' | 'Number' | 'Date' | 'Select' | 'Boolean';
+
+export interface MemberCustomField {
+  id: string;
+  key: string;
+  label: string;
+  type: CustomFieldType;
+  appliesTo: 'Individual' | 'Entity' | 'Both';
+  required: boolean;
+  options?: string[];
+  status: 'Active' | 'Inactive';
+  createdAt: string;
+}
+
+export interface MemberCustomValue {
+  id: string;
+  memberId: string;
+  fieldId: string;
+  fieldKey: string;
+  label: string;
+  type: CustomFieldType;
+  value: string;
+  updatedAt: string;
+}
+
+export interface ExitChecklistItem {
+  key: string;
+  label: string;
+  done: boolean;
+  note?: string;
+}
+
+export interface MemberExitRequest {
+  id: string;
+  memberId: string;
+  memberName: string;
+  memberNo: string;
+  reason: string;
+  status: 'Pending' | 'Approved' | 'Completed' | 'Rejected';
+  checklist: ExitChecklistItem[];
+  requestedAt: string;
+  decidedAt?: string;
+  completedAt?: string;
+}
+
+export interface DormancyPolicy {
+  months: number;
+  autoFlagMembers: boolean;
+  autoFlagAccounts: boolean;
+  updatedAt: string;
+}
+
+export interface DormancyCandidate {
+  memberId: string;
+  memberName: string;
+  memberNo: string;
+  lastActivity: string;
+  status: MemberStatus;
+  savingsBalance: number;
+  loanOutstanding: number;
+}
+
+export interface DormancyRunResult {
+  flagged: number;
+  skipped: number;
+  candidates: DormancyCandidate[];
+}
+
+// ============================================================
+// Immutable audit trail
+// ============================================================
+
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'APPROVE' | 'REJECT';
+
+export interface AuditTrailEntry {
+  id: string;
+  actor: string;
+  action: AuditAction;
+  entity: string;
+  entityId: string;
+  field?: string;
+  oldValue?: string;
+  newValue?: string;
+  detail?: string;
+  ip?: string;
+  occurredAt: string;
+  hash: string;
+  prevHash?: string;
+}

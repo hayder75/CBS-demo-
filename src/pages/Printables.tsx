@@ -10,10 +10,12 @@ import {
 } from '@ant-design/icons';
 import { PageHeader } from '../components/PageHeader';
 import { StatCard } from '../components/StatCard';
+import { ExportExcelButton } from '../components/ExportExcelButton';
 import { useMembers } from '../context/MembersContext';
 import { api } from '../api/client';
 import type { DividendRun, GaResolution, Loan, SavingsProduct, SavingsTransaction } from '../types';
 import type { CsvRow } from '../utils/csv';
+import type { ExcelSheet } from '../utils/excel';
 import { fmtDate, fmtETB, fmtNum } from '../utils/format';
 import { downloadCsv, printHtml } from '../utils/print';
 import { colors } from '../theme';
@@ -67,6 +69,12 @@ const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const money = (n: number) => fmtETB(n);
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+function excelColumnType(key: string, sample: unknown): 'string' | 'number' | 'date' {
+  if (typeof sample === 'number') return 'number';
+  if (/(date|joined)/i.test(key)) return 'date';
+  return 'string';
+}
 
 function tableHtml(columns: string[], rows: (string | number)[][], numeric: number[] = [], footer?: (string | number)[]) {
   const head = `<thead><tr>${columns
@@ -534,6 +542,21 @@ export default function Printables() {
     message.success('Document exported to CSV');
   };
 
+  const printableSheets = (): ExcelSheet[] => {
+    if (doc.csvRows.length === 0) return [];
+    const keys = Array.from(new Set(doc.csvRows.flatMap((row) => Object.keys(row))));
+    return [
+      {
+        name: doc.title,
+        columns: keys.map((key) => {
+          const sample = doc.csvRows.find((row) => row[key] !== null && row[key] !== undefined)?.[key];
+          return { header: key, key, type: excelColumnType(key, sample) };
+        }),
+        rows: doc.csvRows,
+      },
+    ];
+  };
+
   const showMemberSelect = docType === 'member-statement' || docType === 'deposit-receipt' || docType === 'share-register';
   const showLoanSelect = docType === 'loan-schedule';
   const showTxSelect = docType === 'deposit-receipt';
@@ -560,6 +583,7 @@ export default function Printables() {
                 </Button>
               </span>
             </Tooltip>
+            <ExportExcelButton fileName={`${slug(doc.title)}.xlsx`} sheets={printableSheets} disabled={loading} />
           </Space>
         }
       />

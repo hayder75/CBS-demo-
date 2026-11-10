@@ -41,6 +41,8 @@ import Compliance from './Compliance';
 import Printables from './Printables';
 import SystemOps from './SystemOps';
 import Referrals from './Referrals';
+import MemberLifecycle from './MemberLifecycle';
+import AuditTrail from './AuditTrail';
 
 const server = setupServer(...handlers);
 const pending: Array<() => void> = [];
@@ -129,6 +131,8 @@ describe('All pages render + load data via API (mock-backed, no browser automati
     ['Printables', <Printables />, 'Printables'],
     ['SystemOps', <SystemOps />, 'System Operations'],
     ['Referrals', <Referrals />, 'Referral'],
+    ['MemberLifecycle', <MemberLifecycle />, 'Member Lifecycle'],
+    ['AuditTrail', <AuditTrail />, 'Audit Trail'],
   ];
 
   for (const [name, element, expectedText] of cases) {

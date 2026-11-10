@@ -40,6 +40,8 @@ const Compliance = lazy(() => import('./pages/Compliance'));
 const Printables = lazy(() => import('./pages/Printables'));
 const SystemOps = lazy(() => import('./pages/SystemOps'));
 const Referrals = lazy(() => import('./pages/Referrals'));
+const MemberLifecycle = lazy(() => import('./pages/MemberLifecycle'));
+const AuditTrail = lazy(() => import('./pages/AuditTrail'));
 const Search = lazy(() => import('./pages/Search'));
 const LoanDecision = lazy(() => import('./pages/LoanDecision'));
 const LoanScoringConfig = lazy(() => import('./pages/LoanScoringConfig'));
@@ -112,6 +114,8 @@ export default function App() {
             <Route path="printables" element={<Printables />} />
             <Route path="system-ops" element={<SystemOps />} />
           <Route path="referrals" element={<Referrals />} />
+          <Route path="member-lifecycle" element={<MemberLifecycle />} />
+          <Route path="audit-trail" element={<AuditTrail />} />
             <Route path="search" element={<Search />} />
             <Route path="loan-decision" element={<LoanDecision />} />
             <Route path="loan-scoring-config" element={<LoanScoringConfig />} />

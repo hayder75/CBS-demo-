@@ -86,6 +86,8 @@ import { systemOpsHandlers } from './modules/systemOps';
 import { twoFactorHandlers } from './modules/twoFactor';
 import { afroSmsHandlers } from './modules/afroSms';
 import { referralHandlers } from './modules/referrals';
+import { memberLifecycleHandlers } from './modules/memberLifecycle';
+import { auditTrailHandlers } from './modules/auditTrail';
 import { reportFrameworkHandlers } from './modules/reports';
 import { adminConsoleHandlers } from './modules/admin';
 import { scoringHandlers } from './modules/scoring';
@@ -1081,6 +1083,8 @@ export const handlers = [
   ...scoringHandlers,
   ...afroSmsHandlers,
   ...referralHandlers,
+  ...memberLifecycleHandlers,
+  ...auditTrailHandlers,
 ];
 
 export const reportRows = {

@@ -20,8 +20,10 @@ import {
   PrinterOutlined,
   ReconciliationOutlined,
   RobotOutlined,
+  SafetyOutlined,
   SearchOutlined,
   SettingOutlined,
+  UserSwitchOutlined,
   SlidersOutlined,
   SolutionOutlined,
   SwapOutlined,
@@ -66,6 +68,7 @@ export const navModules: NavModule[] = [
       { path: '/members', key: 'nav.members', icon: <TeamOutlined />, roles: ALL },
       { path: '/membership-applications', key: 'nav.membership', icon: <IdcardOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER'] },
       { path: '/referrals', key: 'nav.referral', icon: <GiftOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER'] },
+      { path: '/member-lifecycle', key: 'nav.memberLifecycle', icon: <UserSwitchOutlined />, roles: ['ADMIN', 'MANAGER', 'TELLER'] },
     ],
   },
   {
@@ -144,6 +147,7 @@ export const navModules: NavModule[] = [
     items: [
       { path: '/auditing', key: 'nav.auditing', icon: <AuditOutlined />, roles: ['ADMIN', 'AUDITOR'] },
       { path: '/compliance', key: 'nav.compliance', icon: <FileTextOutlined />, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'AUDITOR'] },
+      { path: '/audit-trail', key: 'nav.auditTrail', icon: <SafetyOutlined />, roles: ['ADMIN', 'MANAGER', 'AUDITOR'] },
     ],
   },
   {

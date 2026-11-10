@@ -1,6 +1,7 @@
 import { Card } from 'antd';
 import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons';
 import type { ReactNode } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 
 export interface StatCardProps {
   title: string;
@@ -23,11 +24,12 @@ export function StatCard({
   delta,
   caption,
 }: StatCardProps) {
+  const { tText } = useI18n();
   const direction = delta == null ? 'flat' : delta >= 0 ? 'up' : 'down';
   return (
     <Card className="stat-card" style={{ height: '100%' }} styles={{ body: { padding: '18px 20px' } }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <div className="kpi-label">{title}</div>
+        <div className="kpi-label">{tText(title)}</div>
         {icon && <span style={{ fontSize: 16, opacity: 0.75 }}>{icon}</span>}
       </div>
       <div className="kpi-value" style={color ? { color } : undefined}>
@@ -43,7 +45,7 @@ export function StatCard({
             </span>
           )}
           {footer && <span className="kpi-caption">{footer}</span>}
-          {caption && <span className="kpi-caption">{caption}</span>}
+          {caption && <span className="kpi-caption">{tText(caption)}</span>}
         </div>
       )}
     </Card>
