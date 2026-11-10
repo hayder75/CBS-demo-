@@ -1,5 +1,7 @@
 package com.cbs.sacco.savings.service;
 
+import com.cbs.sacco.account.entity.SavingsAccount;
+import com.cbs.sacco.account.repo.SavingsAccountRepository;
 import com.cbs.sacco.accounting.entity.GlAccount;
 import com.cbs.sacco.accounting.entity.JournalEntry;
 import com.cbs.sacco.accounting.repo.GlAccountRepository;
@@ -17,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class SavingsService {
@@ -26,21 +30,25 @@ public class SavingsService {
     private static final String MANDATORY_GL = "1200";
     private static final String VOLUNTARY_GL = "1201";
     private static final String INTEREST_EXPENSE_GL = "3310";
+    private static final String FEE_INCOME_GL = "2100";
 
     private final MemberRepository memberRepository;
     private final SavingsProductRepository productRepository;
     private final SavingsTransactionRepository transactionRepository;
+    private final SavingsAccountRepository accountRepository;
     private final GlAccountRepository glAccountRepository;
     private final JournalEntryRepository journalEntryRepository;
 
     public SavingsService(MemberRepository memberRepository,
                           SavingsProductRepository productRepository,
                           SavingsTransactionRepository transactionRepository,
+                          SavingsAccountRepository accountRepository,
                           GlAccountRepository glAccountRepository,
                           JournalEntryRepository journalEntryRepository) {
         this.memberRepository = memberRepository;
         this.productRepository = productRepository;
         this.transactionRepository = transactionRepository;
+        this.accountRepository = accountRepository;
         this.glAccountRepository = glAccountRepository;
         this.journalEntryRepository = journalEntryRepository;
     }
@@ -91,55 +99,218 @@ public class SavingsService {
 
     @Transactional
     public int postMonthlyInterest() {
-        String glCode = VOLUNTARY_GL;
-        SavingsProduct voluntary = productRepository.findById(2L)
-                .orElseThrow(() -> new NotFoundException("Voluntary savings product missing"));
-        BigDecimal rate = voluntary.getInterestRatePct();
-
-        BigDecimal totalInterest = BigDecimal.ZERO;
         int count = 0;
-        for (Member member : memberRepository.findAll()) {
-            if (member.getSavingsBalance().signum() <= 0) continue;
-            BigDecimal interest = member.getSavingsBalance()
-                    .multiply(rate).divide(BigDecimal.valueOf(1200), 2, RoundingMode.HALF_UP);
-            if (interest.signum() <= 0) continue;
+        for (SavingsProduct product : productRepository.findAll()) {
+            BigDecimal rate = product.getInterestRatePct();
+            if (rate == null || rate.signum() <= 0) continue;
 
-            SavingsTransaction tx = new SavingsTransaction();
-            tx.setMemberId(member.getId());
-            tx.setProductId(2L);
-            tx.setDate(LocalDate.now());
-            tx.setType("Interest");
-            tx.setAmount(interest);
-            tx.setTeller("System");
-            tx.setChannel("Bank");
-            transactionRepository.save(tx);
+            BigDecimal productInterest = BigDecimal.ZERO;
+            boolean minimumBalanceMethod = "Minimum Balance".equalsIgnoreCase(product.getInterestMethod());
 
-            member.setSavingsBalance(member.getSavingsBalance().add(interest));
-            memberRepository.save(member);
-            totalInterest = totalInterest.add(interest);
-            count++;
-        }
+            for (SavingsAccount account : accountRepository.findByProductId(product.getId())) {
+                BigDecimal balance = safe(account.getBalance());
+                if (balance.signum() <= 0) continue;
 
-        if (totalInterest.signum() > 0) {
-            GlAccount expense = glAccountRepository.findAll().stream()
-                    .filter(a -> INTEREST_EXPENSE_GL.equals(a.getCode())).findFirst()
-                    .orElseThrow(() -> new NotFoundException("Interest expense account missing"));
-            GlAccount savings = glAccountRepository.findAll().stream()
-                    .filter(a -> glCode.equals(a.getCode())).findFirst()
-                    .orElseThrow(() -> new NotFoundException("Savings GL account missing"));
-            expense.setBalance(expense.getBalance().add(totalInterest));
-            savings.setBalance(savings.getBalance().subtract(totalInterest));
-            glAccountRepository.saveAll(List.of(expense, savings));
+                Member member = memberRepository.findById(account.getMemberId()).orElse(null);
+                if (member == null) continue;
 
-            String ref = "JRN-" + LocalDate.now().getYear() + "-INT";
-            journalEntryRepository.save(entry(LocalDate.now(), ref, "Monthly interest posting",
-                    INTEREST_EXPENSE_GL, "Interest Expense - Member Savings",
-                    totalInterest, BigDecimal.ZERO, "System"));
-            journalEntryRepository.save(entry(LocalDate.now(), ref, "Monthly interest posting",
-                    glCode, "Member Savings - Voluntary",
-                    BigDecimal.ZERO, totalInterest, "System"));
+                BigDecimal base = balance;
+                if (minimumBalanceMethod) {
+                    BigDecimal minBalance = safe(product.getMinBalance());
+                    if (minBalance.signum() > 0) base = balance.min(minBalance);
+                }
+                BigDecimal interest = base.multiply(rate)
+                        .divide(BigDecimal.valueOf(1200), 2, RoundingMode.HALF_UP);
+                if (interest.signum() <= 0) continue;
+
+                account.setBalance(balance.add(interest));
+                accountRepository.save(account);
+
+                member.setSavingsBalance(safe(member.getSavingsBalance()).add(interest));
+                memberRepository.save(member);
+
+                SavingsTransaction tx = new SavingsTransaction();
+                tx.setMemberId(account.getMemberId());
+                tx.setProductId(product.getId());
+                tx.setDate(LocalDate.now());
+                tx.setType("Interest");
+                tx.setAmount(interest);
+                tx.setTeller("System");
+                tx.setChannel("Bank");
+                transactionRepository.save(tx);
+
+                productInterest = productInterest.add(interest);
+                count++;
+            }
+
+            if (productInterest.signum() > 0) {
+                String expenseCode = codeOr(product.getGlInterestExpenseCode(), INTEREST_EXPENSE_GL);
+                String liabilityCode = codeOr(product.getGlLiabilityCode(),
+                        "Mandatory".equals(product.getType()) ? MANDATORY_GL : VOLUNTARY_GL);
+                GlAccount expense = glAccount(expenseCode);
+                GlAccount savings = glAccount(liabilityCode);
+                expense.setBalance(safe(expense.getBalance()).add(productInterest));
+                savings.setBalance(safe(savings.getBalance()).subtract(productInterest));
+                glAccountRepository.saveAll(List.of(expense, savings));
+
+                String ref = "JRN-" + LocalDate.now().getYear() + "-INT-" + product.getId()
+                        + "-" + (journalEntryRepository.count() + 1);
+                journalEntryRepository.save(entry(LocalDate.now(), ref, "Monthly interest posting",
+                        expenseCode, expense.getName(), productInterest, BigDecimal.ZERO, "System"));
+                journalEntryRepository.save(entry(LocalDate.now(), ref, "Monthly interest posting",
+                        liabilityCode, savings.getName(), BigDecimal.ZERO, productInterest, "System"));
+            }
         }
         return count;
+    }
+
+    @Transactional
+    public Map<String, Object> postMaintenanceFees() {
+        int posted = 0;
+        int skipped = 0;
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for (SavingsProduct product : productRepository.findAll()) {
+            BigDecimal feeAmount = safe(product.getMaintenanceFee());
+            String frequency = product.getMaintenanceFeeFrequency();
+            if (feeAmount.signum() <= 0 || frequency == null || frequency.isBlank()
+                    || "None".equalsIgnoreCase(frequency)) {
+                continue;
+            }
+
+            BigDecimal productTotal = BigDecimal.ZERO;
+            for (SavingsAccount account : accountRepository.findByProductId(product.getId())) {
+                BigDecimal balance = safe(account.getBalance());
+                if (balance.signum() <= 0) continue;
+                Member member = memberRepository.findById(account.getMemberId()).orElse(null);
+                if (member == null) continue;
+                BigDecimal available = balance.subtract(safe(product.getMinBalance()));
+                if (available.signum() < 0) available = BigDecimal.ZERO;
+                BigDecimal charge = feeAmount.min(available).setScale(2, RoundingMode.HALF_UP);
+                if (charge.signum() <= 0) {
+                    skipped++;
+                    continue;
+                }
+
+                account.setBalance(balance.subtract(charge));
+                accountRepository.save(account);
+
+                member.setSavingsBalance(safe(member.getSavingsBalance()).subtract(charge).max(BigDecimal.ZERO));
+                memberRepository.save(member);
+
+                SavingsTransaction tx = new SavingsTransaction();
+                tx.setMemberId(account.getMemberId());
+                tx.setProductId(product.getId());
+                tx.setDate(LocalDate.now());
+                tx.setType("Fee");
+                tx.setAmount(charge);
+                tx.setTeller("System");
+                tx.setChannel("Bank");
+                transactionRepository.save(tx);
+
+                productTotal = productTotal.add(charge);
+                posted++;
+            }
+
+            if (productTotal.signum() > 0) {
+                String feeCode = codeOr(product.getGlFeeIncomeCode(), FEE_INCOME_GL);
+                String liabilityCode = codeOr(product.getGlLiabilityCode(),
+                        "Mandatory".equals(product.getType()) ? MANDATORY_GL : VOLUNTARY_GL);
+                GlAccount feeIncome = glAccount(feeCode);
+                GlAccount savings = glAccount(liabilityCode);
+                feeIncome.setBalance(safe(feeIncome.getBalance()).subtract(productTotal));
+                savings.setBalance(safe(savings.getBalance()).add(productTotal));
+                glAccountRepository.saveAll(List.of(feeIncome, savings));
+
+                String ref = "JRN-" + LocalDate.now().getYear() + "-FEE-" + product.getId()
+                        + "-" + (journalEntryRepository.count() + 1);
+                journalEntryRepository.save(entry(LocalDate.now(), ref, "Maintenance fee posting",
+                        liabilityCode, savings.getName(), productTotal, BigDecimal.ZERO, "System"));
+                journalEntryRepository.save(entry(LocalDate.now(), ref, "Maintenance fee posting",
+                        feeCode, feeIncome.getName(), BigDecimal.ZERO, productTotal, "System"));
+                totalAmount = totalAmount.add(productTotal);
+            }
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("posted", posted);
+        result.put("totalAmount", totalAmount);
+        result.put("skipped", skipped);
+        return result;
+    }
+
+    @Transactional
+    public Map<String, Object> chargePassbookFee(Long memberId, Long productId) {
+        SavingsProduct product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Savings product not found: " + productId));
+        SavingsAccount account = accountRepository.findByMemberId(memberId).stream()
+                .filter(a -> productId.equals(a.getProductId()))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(
+                        "Savings account not found for member " + memberId + " and product " + productId));
+
+        BigDecimal fee = safe(product.getPassbookFee()).setScale(2, RoundingMode.HALF_UP);
+        if (fee.signum() <= 0) {
+            throw new IllegalArgumentException("passbookFee must be greater than zero");
+        }
+
+        BigDecimal balance = safe(account.getBalance());
+        if (balance.subtract(fee).compareTo(safe(product.getMinBalance())) < 0) {
+            throw new IllegalArgumentException("Passbook fee would reduce balance below minimum balance");
+        }
+
+        account.setBalance(balance.subtract(fee));
+        accountRepository.save(account);
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("Member not found: " + memberId));
+        member.setSavingsBalance(safe(member.getSavingsBalance()).subtract(fee).max(BigDecimal.ZERO));
+        memberRepository.save(member);
+
+        SavingsTransaction tx = new SavingsTransaction();
+        tx.setMemberId(memberId);
+        tx.setProductId(productId);
+        tx.setDate(LocalDate.now());
+        tx.setType("Fee");
+        tx.setAmount(fee);
+        tx.setTeller("System");
+        tx.setChannel("Bank");
+        transactionRepository.save(tx);
+
+        String feeCode = codeOr(product.getGlFeeIncomeCode(), FEE_INCOME_GL);
+        String liabilityCode = codeOr(product.getGlLiabilityCode(),
+                "Mandatory".equals(product.getType()) ? MANDATORY_GL : VOLUNTARY_GL);
+        GlAccount feeIncome = glAccount(feeCode);
+        GlAccount savings = glAccount(liabilityCode);
+        feeIncome.setBalance(safe(feeIncome.getBalance()).subtract(fee));
+        savings.setBalance(safe(savings.getBalance()).add(fee));
+        glAccountRepository.saveAll(List.of(feeIncome, savings));
+
+        String ref = "JRN-" + LocalDate.now().getYear() + "-PB-" + memberId + "-" + productId
+                + "-" + (journalEntryRepository.count() + 1);
+        journalEntryRepository.save(entry(LocalDate.now(), ref, "Passbook fee posting",
+                liabilityCode, savings.getName(), fee, BigDecimal.ZERO, "System"));
+        journalEntryRepository.save(entry(LocalDate.now(), ref, "Passbook fee posting",
+                feeCode, feeIncome.getName(), BigDecimal.ZERO, fee, "System"));
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("posted", 1);
+        result.put("amount", fee);
+        return result;
+    }
+
+    private BigDecimal safe(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
+    }
+
+    private String codeOr(String code, String fallback) {
+        return code != null && !code.isBlank() ? code : fallback;
+    }
+
+    private GlAccount glAccount(String code) {
+        return glAccountRepository.findAll().stream()
+                .filter(a -> code.equals(a.getCode())).findFirst()
+                .orElseThrow(() -> new NotFoundException("GL account missing: " + code));
     }
 
     private void postGl(boolean deposit, BigDecimal amount, SavingsProduct product, String teller) {

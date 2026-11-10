@@ -113,11 +113,11 @@ function makeMember(i: number, extra?: Partial<Member>): Member {
 export const members: Member[] = Array.from({ length: 20 }, (_, i) => makeMember(i));
 
 export const savingsProducts: SavingsProduct[] = [
-  { id: 'sp1', code: 'S-MAND', name: 'Mandatory Monthly Savings', type: 'Mandatory', interestRatePct: 5.0, minBalance: 1200 },
-  { id: 'sp2', code: 'S-VOL', name: 'Voluntary Withdrawable Savings', type: 'Voluntary', interestRatePct: 6.0, minBalance: 0 },
-  { id: 'sp3', code: 'S-HOL', name: 'Holiday / Target Savings', type: 'Holiday', interestRatePct: 6.5, minBalance: 0 },
-  { id: 'sp4', code: 'S-FIX-12', name: 'Fixed-Term Deposit 12M', type: 'Fixed', interestRatePct: 8.0, minBalance: 5000 },
-  { id: 'sp5', code: 'S-FIX-24', name: 'Fixed-Term Deposit 24M', type: 'Fixed', interestRatePct: 9.5, minBalance: 5000 },
+  { id: 'sp1', code: 'S-MAND', name: 'Mandatory Monthly Savings', type: 'Mandatory', interestRatePct: 5.0, minBalance: 1200, interestMethod: 'Daily Outstanding', maintenanceFee: 0, maintenanceFeeFrequency: 'None', passbookFee: 50, overdraftAllowed: false, overdraftLimit: 0, autoCreate: true, compulsory: true, lockInMonths: 0, glLiabilityCode: '1200', glInterestExpenseCode: '2000', glFeeIncomeCode: '2100' },
+  { id: 'sp2', code: 'S-VOL', name: 'Voluntary Withdrawable Savings', type: 'Voluntary', interestRatePct: 6.0, minBalance: 0, interestMethod: 'Daily Outstanding', maintenanceFee: 25, maintenanceFeeFrequency: 'Monthly', passbookFee: 50, overdraftAllowed: true, overdraftLimit: 20000, autoCreate: false, compulsory: false, lockInMonths: 0, glLiabilityCode: '1201', glInterestExpenseCode: '2000', glFeeIncomeCode: '2100' },
+  { id: 'sp3', code: 'S-HOL', name: 'Holiday / Target Savings', type: 'Holiday', interestRatePct: 6.5, minBalance: 0, interestMethod: 'Daily Outstanding', maintenanceFee: 10, maintenanceFeeFrequency: 'Quarterly', passbookFee: 50, overdraftAllowed: false, overdraftLimit: 0, autoCreate: false, compulsory: false, lockInMonths: 0, glLiabilityCode: '1201', glInterestExpenseCode: '2000', glFeeIncomeCode: '2100' },
+  { id: 'sp4', code: 'S-FIX-12', name: 'Fixed-Term Deposit 12M', type: 'Fixed', interestRatePct: 8.0, minBalance: 5000, noticePeriodDays: 12, interestMethod: 'Minimum Balance', maintenanceFee: 0, maintenanceFeeFrequency: 'None', passbookFee: 100, overdraftAllowed: false, overdraftLimit: 0, autoCreate: false, compulsory: false, lockInMonths: 12, glLiabilityCode: '1201', glInterestExpenseCode: '2000', glFeeIncomeCode: '2100' },
+  { id: 'sp5', code: 'S-FIX-24', name: 'Fixed-Term Deposit 24M', type: 'Fixed', interestRatePct: 9.5, minBalance: 5000, noticePeriodDays: 24, interestMethod: 'Minimum Balance', maintenanceFee: 0, maintenanceFeeFrequency: 'None', passbookFee: 100, overdraftAllowed: false, overdraftLimit: 0, autoCreate: false, compulsory: false, lockInMonths: 24, glLiabilityCode: '1201', glInterestExpenseCode: '2000', glFeeIncomeCode: '2100' },
 ];
 
 export const savingsTransactions: SavingsTransaction[] = members.flatMap((m, idx) => {

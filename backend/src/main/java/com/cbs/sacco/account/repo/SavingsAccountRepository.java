@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public interface SavingsAccountRepository extends JpaRepository<SavingsAccount, Long> {
     List<SavingsAccount> findByMemberId(Long memberId);
+    List<SavingsAccount> findByProductId(Long productId);
     List<SavingsAccount> findByStatus(String status);
     Optional<SavingsAccount> findByAccountNo(String accountNo);
 }

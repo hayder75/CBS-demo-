@@ -309,17 +309,128 @@ export const handlers = [
   http.post('/api/savings/products', async ({ request }) => {
     await delay(400);
     const body = (await request.json()) as Record<string, unknown>;
+    const code = String(body.code ?? '').trim();
+    const name = String(body.name ?? '').trim();
+    const type = String(body.type ?? 'Voluntary');
+    if (!code || !name) return HttpResponse.json({ error: 'code and name are required' }, { status: 400 });
+
+    const interestRatePct = Number(body.interestRatePct ?? 0);
+    const minBalance = Number(body.minBalance ?? 0);
+    const maintenanceFee = Number(body.maintenanceFee ?? 0);
+    const passbookFee = Number(body.passbookFee ?? 0);
+    const overdraftLimit = Number(body.overdraftLimit ?? 0);
+    const lockInMonths = Number(body.lockInMonths ?? 0);
+    const interestMethod = String(body.interestMethod ?? 'Daily Outstanding');
+    const maintenanceFeeFrequency = String(body.maintenanceFeeFrequency ?? 'None');
+    const overdraftAllowed = Boolean(body.overdraftAllowed);
+    const autoCreate = Boolean(body.autoCreate);
+    const compulsory = Boolean(body.compulsory);
+
+    if (!Number.isFinite(interestRatePct) || interestRatePct < 0 || !Number.isFinite(minBalance) || minBalance < 0) {
+      return HttpResponse.json({ error: 'interestRatePct and minBalance must be non-negative' }, { status: 400 });
+    }
+    if ([maintenanceFee, passbookFee, overdraftLimit, lockInMonths].some((v) => !Number.isFinite(v) || v < 0)) {
+      return HttpResponse.json({ error: 'fees, overdraftLimit and lockInMonths must be non-negative' }, { status: 400 });
+    }
+    if (interestMethod !== 'Daily Outstanding' && interestMethod !== 'Minimum Balance') {
+      return HttpResponse.json({ error: "interestMethod must be 'Daily Outstanding' or 'Minimum Balance'" }, { status: 400 });
+    }
+    if (!['None', 'Monthly', 'Quarterly', 'Annually'].includes(maintenanceFeeFrequency)) {
+      return HttpResponse.json({ error: 'maintenanceFeeFrequency must be None, Monthly, Quarterly or Annually' }, { status: 400 });
+    }
+
     const product = {
       id: `sp${savingsProducts.length + 1}`,
-      code: String(body.code ?? ''),
-      name: String(body.name ?? ''),
-      type: String(body.type ?? 'Voluntary'),
-      interestRatePct: Number(body.interestRatePct ?? 0),
-      minBalance: Number(body.minBalance ?? 0),
-      noticePeriodDays: body.noticePeriodDays ? Number(body.noticePeriodDays) : undefined,
+      code,
+      name,
+      type,
+      interestRatePct,
+      minBalance,
+      noticePeriodDays: body.noticePeriodDays !== undefined && body.noticePeriodDays !== null
+        ? Number(body.noticePeriodDays) : undefined,
+      interestMethod,
+      maintenanceFee,
+      maintenanceFeeFrequency,
+      passbookFee,
+      overdraftAllowed,
+      overdraftLimit: overdraftAllowed ? overdraftLimit : 0,
+      autoCreate,
+      compulsory,
+      lockInMonths,
+      glLiabilityCode: body.glLiabilityCode ? String(body.glLiabilityCode) : (type === 'Mandatory' ? '1200' : '1201'),
+      glInterestExpenseCode: body.glInterestExpenseCode ? String(body.glInterestExpenseCode) : '2000',
+      glFeeIncomeCode: body.glFeeIncomeCode ? String(body.glFeeIncomeCode) : '2100',
     } as SavingsProduct;
     savingsProducts.push(product);
     return json(product);
+  }),
+  http.post('/api/savings/maintenance-fees', async () => {
+    await delay(700);
+    let posted = 0;
+    let skipped = 0;
+    let totalAmount = 0;
+    for (const p of savingsProducts) {
+      const fee = Number(p.maintenanceFee ?? 0);
+      const frequency = p.maintenanceFeeFrequency ?? 'None';
+      if (fee <= 0 || frequency === 'None') continue;
+      for (const account of savingsAccounts.filter((a) => a.productId === p.id)) {
+        if (account.balance <= 0) continue;
+        const available = Math.max(0, account.balance - Number(p.minBalance ?? 0));
+        const charge = Math.min(fee, available);
+        if (charge <= 0) {
+          skipped++;
+          continue;
+        }
+        account.balance = Math.round((account.balance - charge) * 100) / 100;
+        const member = members.find((m) => m.id === account.memberId);
+        if (member) member.savingsBalance = Math.max(0, Math.round((member.savingsBalance - charge) * 100) / 100);
+        savingsTransactions.unshift({
+          id: `st-${Date.now()}-${account.id}-fee`,
+          memberId: account.memberId,
+          productId: account.productId,
+          date: new Date().toISOString().slice(0, 10),
+          type: 'Fee',
+          amount: charge,
+          teller: 'System',
+          channel: 'Bank',
+        } as unknown as SavingsTransaction);
+        totalAmount += charge;
+        posted++;
+      }
+    }
+    return json({ posted, totalAmount: Math.round(totalAmount * 100) / 100, skipped });
+  }),
+  http.post('/api/savings/passbook-fee', async ({ request }) => {
+    await delay(400);
+    const body = (await request.json()) as Record<string, unknown>;
+    const memberId = String(body.memberId ?? '');
+    const productId = String(body.productId ?? '');
+    if (!memberId || !productId) {
+      return HttpResponse.json({ error: 'memberId and productId are required' }, { status: 400 });
+    }
+    const product = savingsProducts.find((p) => p.id === productId);
+    if (!product) return HttpResponse.json({ error: 'Savings product not found' }, { status: 404 });
+    const account = savingsAccounts.find((a) => a.memberId === memberId && a.productId === productId);
+    if (!account) return HttpResponse.json({ error: 'Savings account not found' }, { status: 404 });
+    const fee = Number(product.passbookFee ?? 0);
+    if (fee <= 0) return HttpResponse.json({ error: 'passbookFee must be greater than zero' }, { status: 400 });
+    if (account.balance - fee < Number(product.minBalance ?? 0)) {
+      return HttpResponse.json({ error: 'Passbook fee would reduce balance below minimum balance' }, { status: 400 });
+    }
+    account.balance = Math.round((account.balance - fee) * 100) / 100;
+    const member = members.find((m) => m.id === memberId);
+    if (member) member.savingsBalance = Math.max(0, Math.round((member.savingsBalance - fee) * 100) / 100);
+    savingsTransactions.unshift({
+      id: `st-${Date.now()}-${account.id}-passbook`,
+      memberId,
+      productId,
+      date: new Date().toISOString().slice(0, 10),
+      type: 'Fee',
+      amount: fee,
+      teller: 'System',
+      channel: 'Bank',
+    } as unknown as SavingsTransaction);
+    return json({ posted: 1, amount: fee });
   }),
   http.post('/api/savings/transactions', async ({ request }) => {
     await delay(500);

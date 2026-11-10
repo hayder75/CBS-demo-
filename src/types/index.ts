@@ -61,6 +61,9 @@ export interface Member {
   beneficiaries: Beneficiary[];
 }
 
+export type SavingsInterestMethod = 'Daily Outstanding' | 'Minimum Balance';
+export type MaintenanceFeeFrequency = 'None' | 'Monthly' | 'Quarterly' | 'Annually';
+
 export interface SavingsProduct {
   id: string;
   code: string;
@@ -70,6 +73,24 @@ export interface SavingsProduct {
   minBalance: number;
   noticePeriodDays?: number;
   status?: 'Pending' | 'Verified';
+  interestMethod?: SavingsInterestMethod;
+  maintenanceFee?: number;
+  maintenanceFeeFrequency?: MaintenanceFeeFrequency;
+  passbookFee?: number;
+  overdraftAllowed?: boolean;
+  overdraftLimit?: number;
+  autoCreate?: boolean;
+  compulsory?: boolean;
+  lockInMonths?: number;
+  glLiabilityCode?: string;
+  glInterestExpenseCode?: string;
+  glFeeIncomeCode?: string;
+}
+
+export interface SavingsFeeRunResult {
+  posted: number;
+  totalAmount: number;
+  skipped: number;
 }
 
 export interface SavingsTransaction {

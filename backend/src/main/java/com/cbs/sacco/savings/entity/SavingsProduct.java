@@ -38,4 +38,40 @@ public class SavingsProduct {
 
     @Column(name = "product_status")
     private String status = "Verified";
+
+    @Column(name = "interest_method")
+    private String interestMethod = "Daily Outstanding";
+
+    @Column(name = "maintenance_fee")
+    private BigDecimal maintenanceFee = BigDecimal.ZERO;
+
+    @Column(name = "maintenance_fee_frequency")
+    private String maintenanceFeeFrequency = "None";
+
+    @Column(name = "passbook_fee")
+    private BigDecimal passbookFee = BigDecimal.ZERO;
+
+    @Column(name = "overdraft_allowed")
+    private boolean overdraftAllowed = false;
+
+    @Column(name = "overdraft_limit")
+    private BigDecimal overdraftLimit = BigDecimal.ZERO;
+
+    @Column(name = "auto_create")
+    private boolean autoCreate = false;
+
+    @Column(name = "compulsory")
+    private boolean compulsory = false;
+
+    @Column(name = "lock_in_months")
+    private int lockInMonths = 0;
+
+    @Column(name = "gl_liability_code")
+    private String glLiabilityCode;
+
+    @Column(name = "gl_interest_expense_code")
+    private String glInterestExpenseCode;
+
+    @Column(name = "gl_fee_income_code")
+    private String glFeeIncomeCode;
 }
