@@ -8,6 +8,8 @@ import com.cbs.sacco.sms.repo.SmsLogRepository;
 import com.cbs.sacco.sms.repo.SmsOtpChallengeRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
@@ -53,6 +55,7 @@ public class SmsService {
         return result;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Map<String, Object> sendOtp(String rawPhone, String purpose) {
         String phone = normalize(rawPhone);
         if (!props.configured()) {
@@ -94,6 +97,7 @@ public class SmsService {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Map<String, Object> verifyOtp(String rawPhone, String code) {
         String phone = normalize(rawPhone);
         if (code == null || !code.matches("\\d{4,8}")) {
@@ -133,6 +137,7 @@ public class SmsService {
         return result;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Map<String, Object> sendSms(String rawPhone, String message) {
         String phone = normalize(rawPhone);
         if (message == null || message.isBlank()) {

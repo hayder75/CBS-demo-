@@ -93,3 +93,22 @@ Disallowed origin `https://evil.example`: no `Access-Control-Allow-Origin` heade
 - TLS 1.3 termination and mTLS: nginx template provided (`deploy/nginx-cbs.conf.template`); not deployed on the audited host.
 - Encryption at rest: depends on PostgreSQL/volume encryption at the hosting layer; application-level field encryption for Fayda ID/phone is not yet implemented.
 - Independent penetration test, ISO/IEC 27001, ISO/IEC 15408, PCI-DSS certification: not performed/not certified. No cardholder data is stored by this platform.
+
+## 10. Live production deployment — 11 November 2026
+
+| Item | Evidence |
+|---|---|
+| URL | `https://51-222-143-50.sslip.io` |
+| TLS | TLSv1.3, `TLS_AES_256_GCM_SHA384`, Let's Encrypt cert (expires 2027-02-08) |
+| HTTP | `301` redirect to HTTPS |
+| HSTS | `max-age=31536000; includeSubDomains` |
+| Headers | CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy no-referrer, Permissions-Policy |
+| Backend | Spring Boot 3.5.16 / Java 21, systemd `anchor-cbs-backend`, 127.0.0.1:8081, PostgreSQL 17.7, 29 Flyway migrations |
+| Frontend | Production build, mocks disabled; demo-only login UI hidden |
+| Login (teller) | `200` + JWT |
+| Login (manager) | `202 {"mfaRequired":true}`; SMS OTP sent, `sms_log` = `Sent` |
+| RBAC (teller) | `/api/members` 200; `/api/auth/users` 403 |
+| RBAC (auditor) | `/api/audit-trail/verify` valid; `POST /api/gl-rules` 403 |
+| Audit chain | `{"valid":true,"checked":35}` at time of check |
+| Login page | No protected API calls before authentication |
+| Policies | `security/policies/` (13 documents) + `ANCHOR_CBS_SECURITY_POLICIES.pdf` |
