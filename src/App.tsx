@@ -68,7 +68,6 @@ function RouteFallback() {
 
 export default function App() {
   return (
-    <MembersProvider>
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -76,7 +75,9 @@ export default function App() {
             path="/"
             element={
               <Protected>
-                <AppLayout />
+                <MembersProvider>
+                  <AppLayout />
+                </MembersProvider>
               </Protected>
             }
           >
@@ -122,6 +123,5 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
-    </MembersProvider>
   );
 }

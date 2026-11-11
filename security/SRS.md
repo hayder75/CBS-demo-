@@ -95,7 +95,7 @@ No POS, card-reader, fiscal-printer, or payment-switch interface exists.
 
 | Category | Requirement |
 |---|---|
-| **Security** | Password authentication (BCrypt, no role-only login); MFA for privileged roles; 30-minute sessions and 5/15-minute lockout; server-side RBAC with least privilege; TLS 1.3 in production and mTLS for service links; encryption at rest and field encryption for Fayda ID/phone; HSTS, CSP, XFO, XCTO, Referrer-Policy, Permissions-Policy; CORS allowlist; secrets from a secret manager; generic errors with no stack traces. Current gaps: residual coarse authorization (PUT/PATCH/SMS), plaintext Fayda/phone, TLS template not deployed and mTLS absent (V-10, V-11, V-16). |
+| **Security** | Password authentication (BCrypt, no role-only login); MFA for privileged roles; 30-minute sessions and 5/15-minute lockout; server-side RBAC with least privilege; TLS 1.3 in production and mTLS for service links; encryption at rest and field encryption for Fayda ID/phone; HSTS, CSP, XFO, XCTO, Referrer-Policy, Permissions-Policy; CORS allowlist; secrets from a secret manager; generic errors with no stack traces. Current gaps: residual coarse authorization (PUT/PATCH/SMS), plaintext Fayda/phone, mTLS absent, and encryption at rest not demonstrated (V-10, V-11, V-16). |
 | **Performance** | Standard list/detail endpoints: average < 800 ms and p95 < 1,500 ms over 20 samples after warm-up on reference hardware; login average < 1,500 ms; capacity validated for at least 50 concurrent back-office users; reports over 30 seconds paginated or asynchronous. |
 | **Availability** | Target 99.5% monthly excluding approved maintenance; daily full backup + WAL archiving; RPO ≤ 24 hours and RTO ≤ 4 hours until a HA/DR design is approved; encrypted off-site backups with quarterly restore tests; health endpoint for ADMIN. |
 | **Maintainability** | Layered Spring components; forward-only Flyway migrations; TypeScript/React front end; automated tests for auth, RBAC, financial calculations, approvals, audit, and reports; structured centralized logs without secrets/PII; externalized configuration; same artifact across environments. |
@@ -108,7 +108,7 @@ No POS, card-reader, fiscal-printer, or payment-switch interface exists.
 
 1. Web-only back office; no device, firmware, POS, invoice, or card-reader functionality.
 2. PostgreSQL is required for triggers, `TIMESTAMPTZ`, and Flyway migrations.
-3. TLS and encryption at rest are deployment responsibilities; a TLS 1.3 nginx template is provided (`deploy/nginx-cbs.conf.template`) but not deployed. The app supports HSTS and HTTPS redirect but does not terminate TLS or encrypt volumes.
+3. TLS 1.3 is deployed at `https://51-222-143-50.sslip.io` (verified 11 Nov 2026); mTLS is not implemented. Encryption at rest remains a hosting/database responsibility and was not demonstrated.
 4. SMS MFA depends on AfroMessage; a break-glass procedure is required if the gateway is unavailable.
 5. JWT is stateless; logout is client-side and server-side revocation is not implemented.
 6. Single-tenant deployment; no tenant isolation.
@@ -132,7 +132,7 @@ No POS, card-reader, fiscal-printer, or payment-switch interface exists.
 | AC-09 | Security headers are present; disallowed CORS origins receive no ACAO. |
 | AC-10 | No stack trace or internal path appears in an error response. |
 | AC-11 | `npm audit --omit=dev` reports 0 vulnerabilities and no ProComponents/ProLayout packages remain. |
-| AC-12 | Production uses TLS 1.3, encrypted volumes, a secret manager, and the production credential guard with no default/demo credentials (currently partial/open: V-10, V-11, V-15). |
+| AC-12 | Production uses TLS 1.3 (verified live), encrypted volumes (not evidenced), a secret manager/environment secrets, and the production credential guard with no default/demo credentials. mTLS and encryption at rest remain open (V-10, V-11); legacy demo hashes must still be rotated (V-15 residual). |
 
 ---
 

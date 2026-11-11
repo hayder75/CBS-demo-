@@ -21,10 +21,12 @@ This guide explains how to run the security checks, configure the environment, h
 | File | Purpose |
 |---|---|
 | `security/COMPLIANCE_MATRIX.md` | 52-row INSA OF/AEAD/001 checklist with status, evidence, and remediation. |
-| `security/VULNERABILITY_REPORT.md` | 19 findings (9 fixed, 5 partial, 5 open), CVSS-style ratings, evidence, test results, roadmap, and the 2026-11-11 remediation-update table. |
+| `security/VULNERABILITY_REPORT.md` | 19 findings (10 fixed, 4 partial, 5 open), CVSS-style ratings, evidence, live deployment evidence, roadmap, and the 2026-11-11 remediation-update table. |
 | `security/SRS.md` | Requirements specification for the implemented SACCO platform. |
-| `security/evidence/security-test-results.md` | Live test transcript and build/regression results for the hardening batch. |
-| `security/README.md` | This runbook: checks, environment, hardening, evidence reproduction. |
+| `security/evidence/security-test-results.md` | Local test transcript and build/regression results for the hardening batch. |
+| `security/policies/` | 13-document information security policy pack (index + 12 policies), pending management sign-off. |
+| `security/ANCHOR_CBS_SECURITY_POLICIES.pdf` | 57-page compiled policy pack for management signature. |
+| `security/README.md` | This runbook: checks, environment, live deployment, hardening, evidence reproduction. |
 
 ---
 
@@ -121,6 +123,62 @@ mvn spring-boot:run
 ```
 
 > `REQUIRE_HTTPS=true` without a TLS terminator will redirect local HTTP requests. Use it only behind nginx/ALB with forwarded headers. With `PRODUCTION=true`, startup fails if `SEED_PASSWORD=demo123` or the demo JWT secret is used.
+
+### 3.5 Live production deployment — 11 November 2026
+
+| Item | Value |
+|---|---|
+| Public URL | `https://51-222-143-50.sslip.io` |
+| Host | Ubuntu 25.04; nginx 1.26.3 |
+| Backend | Spring Boot 3.5.16, Java 21; systemd `anchor-cbs-backend` on `127.0.0.1:8081` |
+| Database | PostgreSQL 17.7; 29 Flyway migrations applied |
+| Frontend | Production build with `VITE_USE_MOCK=false`; static root `/var/www/anchor-cbs`; demo login UI hidden |
+| Certificate | Let's Encrypt, CN `51-222-143-50.sslip.io`; valid 2026-11-10 to 2027-02-08 |
+| TLS | `TLSv1.3` only; HTTP returns `301` to HTTPS; HSTS `max-age=31536000; includeSubDomains` |
+| Runtime flags | `PRODUCTION=true`, `REQUIRE_MFA=true`, `REQUIRE_HTTPS=true`; rotated seed password; JWT/DB secrets from the environment; CORS locked to the public origin |
+
+### 3.6 Operations notes
+
+**systemd**
+
+```bash
+systemctl status anchor-cbs-backend
+systemctl restart anchor-cbs-backend
+journalctl -u anchor-cbs-backend -f
+systemctl cat anchor-cbs-backend      # confirms ExecStart, EnvironmentFile, User
+```
+
+**nginx**
+
+The deployed site is the production counterpart of `deploy/nginx-cbs.conf.template`. Locate the exact file with:
+
+```bash
+nginx -T | grep -n 'server_name 51-222-143-50.sslip.io'
+```
+
+Typical Ubuntu layout is `/etc/nginx/sites-available/anchor-cbs` symlinked into `/etc/nginx/sites-enabled/`. After a change:
+
+```bash
+nginx -t && systemctl reload nginx
+```
+
+**Certbot renewal**
+
+```bash
+certbot certificates
+certbot renew --dry-run
+systemctl list-timers | grep -i certbot
+```
+
+Keep a deploy hook that reloads nginx after renewal, e.g. `--deploy-hook "systemctl reload nginx"`. Monitor expiry; the current certificate expires 2027-02-08. Never commit private keys.
+
+**Environment file**
+
+The systemd unit loads secrets through `EnvironmentFile=`. Confirm the path with `systemctl cat anchor-cbs-backend`. Recommended permissions are owner `root`, group the service account, mode `0640`; never world-readable and never in git. It must contain `PRODUCTION=true`, `SEED_PASSWORD` (rotated), `JWT_SECRET`, `DB_PASSWORD`, `REQUIRE_MFA=true`, `REQUIRE_HTTPS=true`, and the production `CORS_ORIGINS`.
+
+**Policy pack**
+
+`security/policies/` contains the 13-document pack; `security/ANCHOR_CBS_SECURITY_POLICIES.pdf` is the 57-page signature copy. Management sign-off is still pending.
 
 ---
 
@@ -354,32 +412,66 @@ PRODUCTION=true SEED_PASSWORD=demo123 JWT_SECRET='cbs-general-demo-secret-key-ch
 
 Expected: startup aborts with `PRODUCTION=true requires a non-default SEED_PASSWORD` (or the JWT-secret message). Repeat with `SEED_PASSWORD` set to a strong value and a random `JWT_SECRET`; startup should proceed. The guard only rejects the literal `demo123` and the demo JWT prefix, so also enforce length/entropy in the deployment manifest.
 
+### 4.15 Live production checks
+
+```bash
+export LIVE=https://51-222-143-50.sslip.io
+
+# HTTP must redirect to HTTPS
+curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' http://51-222-143-50.sslip.io/
+
+# TLS 1.3 and certificate dates
+echo | openssl s_client -connect 51-222-143-50.sslip.io:443 \
+  -servername 51-222-143-50.sslip.io -tls1_3 2>/dev/null \
+  | openssl x509 -noout -subject -issuer -dates
+echo | openssl s_client -connect 51-222-143-50.sslip.io:443 \
+  -servername 51-222-143-50.sslip.io -tls1_3 2>/dev/null \
+  | grep -m1 'Protocol\|Cipher'
+
+# Security headers
+curl -sS -D - -o /dev/null "$LIVE/" \
+  | grep -Ei 'strict-transport|content-security|x-frame|x-content|referrer|permissions'
+
+# Authentication (do not lock accounts; use dedicated test users)
+curl -s -o /dev/null -w 'teller=%{http_code}\n' -X POST "$LIVE/api/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"teller","password":"<teller-password>"}'
+# MANAGER/ADMIN should return 202 {"mfaRequired":true}; complete OTP only on a test account.
+
+# Audit chain (requires a valid token from a dedicated test account)
+export LIVE_TOKEN='<token>'
+curl -s -H "Authorization: Bearer $LIVE_TOKEN" "$LIVE/api/audit-trail/verify"
+```
+
+Expected live results: `301` for HTTP, `TLSv1.3`, Let's Encrypt certificate valid to 2027-02-08, HSTS/CSP/XFO/XCTO/Referrer/Permissions headers, teller `200`, manager/admin `202`, and `{"valid":true,...}` for audit. The full live result table is in `security/VULNERABILITY_REPORT.md` §7 and `security/evidence/security-test-results.md`.
+
 ---
 
 ## 5. Production Hardening Checklist
 
 | # | Control | Requirement | Evidence to retain |
 |---:|---|---|---|
-| 1 | TLS 1.3 | Deploy `deploy/nginx-cbs.conf.template` (or equivalent ALB policy) with TLS 1.3 only, AEAD ciphers, and automated certificates. | `openssl s_client -tls1_3`, SSL Labs A+ report, deployed proxy config. |
-| 2 | HTTPS enforcement | Redirect all HTTP to HTTPS; set `REQUIRE_HTTPS=true`; HSTS preload after validation. | Redirect test, HSTS header, preload status. |
-| 3 | mTLS | Client certificates for service-to-service and any POS/ERP connector. | Truststore config, negative handshake test. |
+| 1 | TLS 1.3 | **Verified live** on `https://51-222-143-50.sslip.io` (`TLSv1.3`, Let's Encrypt valid to 2027-02-08); keep automated renewal and monitor expiry. | `openssl s_client -tls1_3`, certificate dates, deployed proxy config. |
+| 2 | HTTPS enforcement | **Verified live:** HTTP returns `301`; HSTS is present. Consider preload after the domain is stable. | Redirect test, HSTS header, preload status. |
+| 3 | mTLS | Client certificates for service-to-service and any POS/ERP connector. **Not implemented.** | Truststore config, negative handshake test. |
 | 4 | Secret manager | JWT/DB/SMS secrets in Vault/AWS Secrets Manager/KMS; no `.env` on hosts; rotate on schedule and on compromise. | Secret inventory, rotation log, access policy. |
 | 5 | Remove dev defaults | Set `PRODUCTION=true`; provide strong `JWT_SECRET`/`DB_PASSWORD`; remove `application.yml` fallbacks or fail startup. | Startup failure test, config diff. |
-| 6 | Demo accounts | Set a strong `SEED_PASSWORD`; rotate any existing `demo123` hashes; gate `DataSeeder` behind a demo profile; force first-login change. | User inventory, credential test, seed-profile config. |
-| 7 | MFA | `REQUIRE_MFA=true`; enrol all ADMIN/MANAGER users; document recovery and break-glass. | Enrolment records, 202/200 tests, recovery procedure. |
+| 6 | Demo accounts | **Production verified:** rotated `SEED_PASSWORD`, `PRODUCTION=true`, demo UI hidden, mocks disabled. Still rotate any legacy `demo123` hashes and gate `DataSeeder` behind a demo profile. | User inventory, credential test, seed-profile config. |
+| 7 | MFA | **Live production:** `REQUIRE_MFA=true`; manager/admin return `202`; teller is not MFA-required. Enrol all privileged users and document recovery/break-glass. | Enrolment records, 202/200 tests, recovery procedure. |
 | 8 | CORS | Exact production origins only; no wildcard; credentials disabled. | `CORS_ORIGINS`, preflight test. |
 | 9 | Authorization | Per-endpoint role matrix; no TELLER/CREDIT_OFFICER writes to GL/compliance/admin; extend to PUT/PATCH, SMS, and accounting; AUDITOR read-only. | Role × endpoint test report (V-16 residual closure). |
 | 10 | Encryption at rest | Encrypted volumes + PostgreSQL TDE; AES-256-GCM or tokenization for Fayda ID/phone; encrypted backups. | KMS/volume config, schema/cipher evidence, restore test. |
 | 11 | Database least privilege | Runtime user with DML only; separate migration user; no superuser; TLS to DB. | `\du`, grants, `pg_hba.conf`, connection string. |
-| 12 | Audit export | Stream `audit_trail` to WORM/SIEM; `audit_log` is now append-only but not hash-chained — retire it or reconcile; alert on `verify` failure and trigger errors; retain per policy. | SIEM pipeline, retention policy, alert runbook. |
+| 12 | Audit export | **Live:** triggers active on `audit_trail`, `audit_log`, `sms_log`; `audit_trail` verifies. `audit_log` is append-only but not hash-chained — retire it or reconcile; stream to WORM/SIEM and alert on `verify` failure. | SIEM pipeline, retention policy, alert runbook. |
 | 13 | Backups | Daily full + WAL archiving; encrypted; off-site; quarterly restore test; RPO/RTO documented. | Backup schedule, restore report, encryption evidence. |
 | 14 | Monitoring | Alert on failed-login spikes, lockouts, 403 spikes, 5xx, SMS failures, audit-chain failures, disk/DB health. | Dashboards, alert rules, on-call runbook. |
 | 15 | Patching | Monthly OS/DB/JDK patches; `npm audit` and Maven Dependency-Check in CI; container image scanning. | Scan reports, patch log. |
-| 16 | Pen test | Independent authenticated web/API test before go-live and annually; remediate and retest. | Signed report, retest letter. |
-| 17 | Retention | Data classification, retention schedule, purge/anonymization, legal hold. | Approved policy, purge job logs. |
+| 16 | Pen test | Independent authenticated web/API test before go-live and annually; remediate and retest. **Not performed; management accepted for this submission.** | Signed report or dated risk acceptance, retest letter. |
+| 17 | Retention | Policy now exists (`security/policies/05_Data_Retention_and_Deletion_Policy.md`) but awaits sign-off; implement purge/anonymization, legal hold, and deletion logs. | Approved policy, purge job logs. |
 | 18 | Front-end hardening | CSP at the static host, no `localStorage` token, XSS sanitization, dependency pinning. | CSP header, code review, ZAP results. |
 | 19 | Logging hygiene | No secrets/PII in logs; redact phone/Fayda; centralize with access control. | Log sample, pipeline config. |
 | 20 | Change control | Security review for auth/RBAC/schema changes; migrations tested; rollback plan. | Change tickets, review records. |
+| 21 | Policy pack | Obtain management signatures on the 13 policies / 57-page PDF; assign owners and review dates; do not represent as ISO certification. | Signed PDF, acknowledgement records, review calendar. |
 
 ---
 
@@ -405,6 +497,9 @@ Expected: startup aborts with `PRODUCTION=true requires a non-default SEED_PASSW
 | Lockout `401`×5 then `423` | §4.13, dedicated account only. |
 | Password policy `400` for `"abc"` | `POST /api/auth/users` as ADMIN with `{"username":"x","name":"X","role":"TELLER","password":"abc"}`. |
 | No stack traces | §4.12 + `application.yml`. |
+| Live TLS 1.3, certificate, HTTP 301, headers | §4.15 and `security/VULNERABILITY_REPORT.md` §7. |
+| Live auth/MFA/RBAC/audit | §4.15 and `security/VULNERABILITY_REPORT.md` §7.3. |
+| Policy pack and PDF | `security/policies/` (13 documents), `security/ANCHOR_CBS_SECURITY_POLICIES.pdf` (57 pages); signatures pending. |
 
 **Known test-harness caveat.** `scripts/api-smoke.sh`, `BaseApiIT`, `SaccoApiIntegrationTest`, `ApiContractIT`, `PerformanceIT`, and `EdgeCasesIT` still use the legacy passwordless login payload. They will fail against the remediated backend and must be updated before being used as release evidence:
 
@@ -424,14 +519,15 @@ Also note `src/context/AuthContext.tsx` `switchRole` posts only `{role}` and wil
 ## 7. Known Limitations
 
 - **No POS/invoice hardware.** Device, firmware, secure-boot, OTA, TPM, JTAG/UART, fiscal-printer, and physical-security checklist items are N/A. Do not present this system as device-certified.
-- **TLS template is not deployed.** `deploy/nginx-cbs.conf.template` provides TLS 1.3, HSTS, and HTTP→HTTPS, but the audited host still serves HTTP; mTLS is absent (V-10 Partial).
-- **No verified encryption at rest.** Volume/TDE encryption and field-level encryption are open (V-11).
-- **No independent penetration test or certification.** ISO 27001, ISO 15408, PCI-DSS, and fiscal certification are not held.
-- **Demo mode still uses `demo123`.** `PRODUCTION=true` rejects the demo seed/JWT at startup, but `PRODUCTION=false` is the default, existing databases may retain old hashes, and `.env.example` is only a template (V-15 Partial).
-- **Authorization remains partial** (V-16). Sensitive POSTs are restricted, but PUT/PATCH, `/api/sms/**`, `/api/accounting/**`, and some writes are still broad; do not rely on the UI role menu.
-- **MFA is not fully operationalized.** SMS OTP works for ADMIN/MANAGER but `REQUIRE_MFA` is off by default; enrolment, reset, and recovery are manual (V-09/V-14 Partial).
-- **`audit_log` is append-only but not hash-chained.** UPDATE/DELETE are blocked by V29; INSERT remains possible, and the table can diverge from `audit_trail` (V-19 Fixed with residual).
-- **Audit trail count** (`checked:58` in the evidence run) is a point-in-time value and will change.
+- **TLS 1.3 is live; mTLS is not.** `https://51-222-143-50.sslip.io` verified `TLSv1.3`, valid Let's Encrypt certificate, HTTP `301`, and HSTS; no client-certificate authentication exists (V-10 Partial).
+- **No verified encryption at rest.** Volume/TDE encryption and field-level encryption for Fayda ID/phone remain open (V-11).
+- **No independent penetration test or certification.** ISO 27001, ISO 15408, PCI-DSS, and fiscal certification are not held; management accepted these gaps for this submission (V-12/V-13 Open). Acceptance is not compliance.
+- **Production demo credential is fixed; legacy hashes may remain.** The live deployment uses `PRODUCTION=true` and a rotated `SEED_PASSWORD`, with demo UI hidden and mocks disabled. A legacy database that still holds `demo123` hashes must rotate them; the mock build still uses `demo123` (V-15 Fixed with residual).
+- **Authorization remains partial** (V-16). Sensitive POSTs are restricted and verified live, but PUT/PATCH, `/api/sms/**`, `/api/accounting/**`, and some writes are still broad; do not rely on the UI role menu.
+- **MFA is enabled for privileged roles, not all users.** ADMIN/MANAGER receive SMS OTP in production; TELLER does not require MFA, and enrolment/reset/recovery is manual (V-09/V-14 Partial).
+- **`audit_log` is append-only but not hash-chained.** UPDATE/DELETE are blocked by V29 and triggers are live; INSERT remains possible, and the table can diverge from `audit_trail` (V-19 Fixed with residual).
+- **Policy pack awaits sign-off.** The 13 policies and 57-page PDF exist, but management signatures are pending; the pack is not an ISO certificate (5.2 Partial, 15.1 Gap).
+- **Audit trail count** (`checked:58` in the local evidence run; live verify returned `valid:true` without a fixed count) is a point-in-time value and will change.
 
 ---
 

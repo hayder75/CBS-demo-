@@ -19,13 +19,16 @@ public class DataSeeder implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final String seedPassword;
+    private final String mfaPhone;
 
     public DataSeeder(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
-                      @Value("${app.security.seed-password:demo123}") String seedPassword) {
+                      @Value("${app.security.seed-password:demo123}") String seedPassword,
+                      @Value("${app.security.mfa-phone:}") String mfaPhone) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.seedPassword = seedPassword;
+        this.mfaPhone = mfaPhone;
     }
 
     @Override
@@ -47,6 +50,7 @@ public class DataSeeder implements CommandLineRunner {
                 AppUser user = new AppUser();
                 user.setUsername(seed.username);
                 user.setPasswordHash(passwordEncoder.encode(seedPassword));
+                if (mfaPhone != null && !mfaPhone.isBlank()) user.setPhone(mfaPhone);
                 user.setFullName(seed.name);
                 user.setTitle(seed.title);
                 user.setBranch(seed.branch);

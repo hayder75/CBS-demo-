@@ -84,7 +84,7 @@ export default function Login() {
   };
 
   const onCredentials = async ({ username, password }: { username?: string; password?: string }) => {
-    if (!captcha) {
+    if (demoMode && !captcha) {
       message.warning("Please confirm you're not a robot");
       return;
     }
@@ -252,7 +252,7 @@ export default function Login() {
               width: 'fit-content',
             }}
           >
-            Demo Build — v6 · PRP-ETH-SACCO-2026
+            {demoMode ? 'Demo Build — v6 · PRP-ETH-SACCO-2026' : 'Production · Anchor CBS'}
           </Tag>
         </div>
 
@@ -263,7 +263,9 @@ export default function Login() {
                 Sign in to your workspace
               </Typography.Title>
               <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-                Pick a role to explore that user's permissions and menus.
+                {demoMode
+                  ? "Pick a role to explore that user's permissions and menus."
+                  : 'Enter your username and password to continue.'}
               </Typography.Text>
 
               <Form
@@ -271,7 +273,7 @@ export default function Login() {
                 onFinish={(values: { username?: string; password?: string }) => onCredentials(values)}
                 style={{ marginTop: 24 }}
               >
-                <Row gutter={[10, 10]}>
+                <Row gutter={[10, 10]} style={{ display: demoMode ? undefined : 'none' }}>
                   {roles.map((r) => {
                     const active = selectedRole === r.role;
                     return (
@@ -307,7 +309,7 @@ export default function Login() {
                 <Form.Item name="username" style={{ marginTop: 20, marginBottom: 12 }}>
                   <Input
                     prefix={<UserOutlined style={{ color: '#98a2b3' }} />}
-                    placeholder="Username (or leave empty for demo)"
+                    placeholder={demoMode ? 'Username (or leave empty for demo)' : 'Username'}
                     size="large"
                   />
                 </Form.Item>
@@ -315,14 +317,14 @@ export default function Login() {
                 <Form.Item name="password" style={{ marginBottom: 12 }}>
                   <Input.Password
                     prefix={<LockOutlined style={{ color: '#98a2b3' }} />}
-                    placeholder="Password (demo: demo123)"
+                    placeholder={demoMode ? 'Password (demo: demo123)' : 'Password'}
                     size="large"
                   />
                 </Form.Item>
 
                 <div
                   style={{
-                    display: 'flex',
+                    display: demoMode ? 'flex' : 'none',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     marginBottom: 14,
@@ -350,7 +352,7 @@ export default function Login() {
 
                 <div
                   style={{
-                    display: 'flex',
+                    display: demoMode ? 'flex' : 'none',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     marginBottom: 8,
@@ -373,7 +375,7 @@ export default function Login() {
                 </div>
 
                 <div style={{ minHeight: 18, marginBottom: 6 }}>
-                  {!captcha && (
+                  {demoMode && !captcha && (
                     <Typography.Text type="secondary" style={{ fontSize: 11 }}>
                       Tick the checkbox to enable sign in.
                     </Typography.Text>
@@ -385,14 +387,14 @@ export default function Login() {
                   htmlType="submit"
                   size="large"
                   loading={loading}
-                  disabled={!captcha}
+                  disabled={demoMode && !captcha}
                   icon={<LockOutlined />}
                   block
                 >
                   Sign in
                 </Button>
 
-                <div style={{ textAlign: 'center', marginTop: 14 }}>
+                <div style={{ textAlign: 'center', marginTop: 14, display: demoMode ? 'block' : 'none' }}>
                   <Button type="link" size="small" onClick={() => setAutoRole((v) => !v)}>
                     {autoRole ? '✓ Auto role selected' : 'Quick demo: one-click sign in'}
                   </Button>
@@ -405,16 +407,20 @@ export default function Login() {
                 Verify it's you
               </Typography.Title>
               <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-                Enter the 6-digit code sent to your email address.
+                {mfaUser
+                  ? 'Enter the 6-digit code sent to your phone.'
+                  : 'Enter the 6-digit code sent to your email address.'}
               </Typography.Text>
 
-              <Alert
-                type="info"
-                showIcon
-                style={{ marginTop: 18 }}
-                message="Demo mode"
-                description={`Your email 2FA code is ${devOtp}. It expires in 5 minutes.`}
-              />
+              {!mfaUser && devOtp && (
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginTop: 18 }}
+                  message="Demo mode"
+                  description={`Your email 2FA code is ${devOtp}. It expires in 5 minutes.`}
+                />
+              )}
 
               <Form
                 layout="vertical"
