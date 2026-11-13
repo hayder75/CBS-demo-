@@ -43,3 +43,6 @@ playwright/.cache/
 .env
 .env.*
 !.env.example
+
+# INSA submission documents (not for public repository)
+/INSA_SUBMISSION/
