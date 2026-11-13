@@ -15,21 +15,15 @@ public final class FieldCrypto {
     private static final int IV_BYTES = 12;
     private static final int TAG_BITS = 128;
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final byte[] DEV_KEY =
-            "0123456789abcdef0123456789abcdef".getBytes(StandardCharsets.UTF_8);
 
     private static volatile SecretKey key;
 
     private FieldCrypto() {
     }
 
-    public static void init(String base64Key, boolean production) {
+    public static void init(String base64Key) {
         if (base64Key == null || base64Key.isBlank()) {
-            if (production) {
-                throw new IllegalStateException("FIELD_ENCRYPTION_KEY is required in production");
-            }
-            key = new SecretKeySpec(DEV_KEY, "AES");
-            return;
+            throw new IllegalStateException("FIELD_ENCRYPTION_KEY is required");
         }
         byte[] raw;
         try {

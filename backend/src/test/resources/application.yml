@@ -13,3 +13,4 @@ app:
   security:
     max-failed-attempts: 1000
     lock-minutes: 0
+    field-key: "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
