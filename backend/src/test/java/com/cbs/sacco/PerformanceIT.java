@@ -53,8 +53,17 @@ class PerformanceIT {
     }
 
     private String login(String role) {
+        String username = switch (role) {
+            case "ADMIN" -> "admin";
+            case "MANAGER" -> "manager";
+            case "TELLER" -> "teller";
+            case "CREDIT_OFFICER" -> "credit";
+            case "ACCOUNTANT" -> "accountant";
+            case "AUDITOR" -> "auditor";
+            default -> role;
+        };
         ResponseEntity<Map> resp = rest.postForEntity(base + "/api/auth/login",
-                Map.of("role", role), Map.class);
+                Map.of("username", username, "password", "demo123"), Map.class);
         assertEquals(200, resp.getStatusCode().value());
         return (String) resp.getBody().get("token");
     }
@@ -85,14 +94,17 @@ class PerformanceIT {
                 "/api/approvals", "/api/notifications", "/api/auth/users",
                 "/api/portfolio-at-risk", "/api/savings-trend", "/api/loan-product-mix");
 
+        String adminToken = login("ADMIN");
+
         // warmup
-        for (String p : paths) get(p, token);
+        for (String p : paths) get(p, p.equals("/api/auth/users") ? adminToken : token);
 
         for (String p : paths) {
+            String callToken = p.equals("/api/auth/users") ? adminToken : token;
             long[] samples = new long[20];
             for (int i = 0; i < samples.length; i++) {
                 long t0 = System.nanoTime();
-                assertEquals(200, get(p, token).getStatusCode().value(), p);
+                assertEquals(200, get(p, callToken).getStatusCode().value(), p);
                 samples[i] = (System.nanoTime() - t0) / 1_000_000;
             }
             Arrays.sort(samples);
@@ -147,7 +159,7 @@ class PerformanceIT {
         approval.setDecidedAt(null);
         approvalRepository.save(approval);
 
-        String[] roles = {"TELLER", "TELLER", "ACCOUNTANT", "AUDITOR", "ADMIN", "MANAGER"};
+        String[] roles = {"ADMIN", "ADMIN", "ADMIN", "MANAGER", "MANAGER", "MANAGER"};
         int threads = roles.length;
         ExecutorService pool = Executors.newFixedThreadPool(threads);
         CountDownLatch ready = new CountDownLatch(threads);

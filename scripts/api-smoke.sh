@@ -4,9 +4,13 @@
 
 set -euo pipefail
 
-BASE="http://localhost:8080"
+BASE="${SMOKE_BASE_URL:-http://localhost:8080}"
+SMOKE_USERNAME="${SMOKE_USERNAME:-admin}"
+SMOKE_PASSWORD="${SMOKE_PASSWORD:-demo123}"
 TOKEN=$(curl -s -X POST "$BASE/api/auth/login" -H "Content-Type: application/json" \
-  -d '{"username":"admin"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['token'])")
+  -d "{\"username\":\"$SMOKE_USERNAME\",\"password\":\"$SMOKE_PASSWORD\"}" \
+  | python3 -c "import sys,json;print(json.load(sys.stdin).get('token',''))")
+test -n "$TOKEN" || { echo "smoke login failed"; exit 1; }
 
 fail=0
 check() {

@@ -10,3 +10,6 @@ app:
   jwt:
     secret: "cbs-general-test-secret-key-0123456789abcdef0123456789abcdef"
     expiration-ms: 86400000
+  security:
+    max-failed-attempts: 1000
+    lock-minutes: 0

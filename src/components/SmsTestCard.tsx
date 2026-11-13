@@ -71,7 +71,7 @@ export function SmsTestCard() {
           </Col>
           <Col xs={24} md={16}>
             <Form.Item label="Message" name="message" rules={[{ required: true, message: 'Message required' }]}>
-              <Input placeholder="Test message from Anchor CBS" />
+              <Input placeholder="Test message from Anchor Financials" />
             </Form.Item>
           </Col>
         </Row>

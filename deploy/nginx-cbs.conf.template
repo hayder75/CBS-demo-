@@ -1,38 +1,56 @@
-# Anchor CBS — production TLS template (place certificates before enabling)
+# Anchor CBS — production nginx template (deployed 13 November 2026)
+# The live certificate is issued for 51-222-143-50.sslip.io. Once the
+# cbs.anchorfinancials.et A record exists, run:
+#   sudo certbot --nginx -d 51-222-143-50.sslip.io -d cbs.anchorfinancials.et
+# and update the certificate paths below if certbot writes a combined lineage.
+
 server {
     listen 80;
-    server_name cbs.example.et;
-    return 301 https://$host$request_uri;
+    server_name 51-222-143-50.sslip.io cbs.anchorfinancials.et;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/anchor-cbs;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 server {
     listen 443 ssl;
     http2 on;
-    server_name cbs.example.et;
+    server_name 51-222-143-50.sslip.io cbs.anchorfinancials.et;
 
-    ssl_certificate     /etc/ssl/certs/anchor-cbs.crt;
-    ssl_certificate_key /etc/ssl/private/anchor-cbs.key;
+    ssl_certificate     /etc/letsencrypt/live/51-222-143-50.sslip.io/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/51-222-143-50.sslip.io/privkey.pem;
     ssl_protocols       TLSv1.3;
     ssl_prefer_server_ciphers off;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 1d;
 
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Frame-Options "DENY" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "no-referrer" always;
     add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" always;
+
+    root /var/www/anchor-cbs;
+    index index.html;
+    client_max_body_size 25m;
 
     location /api/ {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:8081;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_read_timeout 60s;
     }
 
     location / {
-        root /home/ubuntu/cbs-demo/dist;
         try_files $uri /index.html;
     }
 }

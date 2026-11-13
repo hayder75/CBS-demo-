@@ -78,22 +78,21 @@ class EdgeCasesIT extends BaseApiIT {
     }
 
     @Test
-    @DisplayName("Login with unknown username -> 404")
-    void unknownUsernameIs404() throws Exception {
-        post("/api/auth/login", Map.of("username", "nobody"), "", 404);
+    @DisplayName("Login with unknown username -> 401")
+    void unknownUsernameIs401() throws Exception {
+        post("/api/auth/login", Map.of("username", "nobody", "password", "demo123"), "", 401);
     }
 
     @Test
-    @DisplayName("Login with unknown role -> 404")
-    void unknownRoleIs404() throws Exception {
-        post("/api/auth/login", Map.of("role", "NOT_A_ROLE"), "", 404);
+    @DisplayName("Login with unknown role -> 401")
+    void unknownRoleIs401() throws Exception {
+        post("/api/auth/login", Map.of("role", "NOT_A_ROLE"), "", 401);
     }
 
     @Test
-    @DisplayName("Empty login defaults to Manager")
-    void emptyLoginDefaultsToManager() throws Exception {
-        JsonNode n = post("/api/auth/login", Map.of(), "", 200);
-        assertEquals("MANAGER", n.get("role").asText());
+    @DisplayName("Empty login -> 401")
+    void emptyLoginIs401() throws Exception {
+        post("/api/auth/login", Map.of(), "", 401);
     }
 
     @Test
@@ -157,12 +156,11 @@ class EdgeCasesIT extends BaseApiIT {
     }
 
     @Test
-    @DisplayName("Maker-checker: initiator cannot approve or reject own request -> 409")
-    void makerCheckerBlocksSelfApproval() throws Exception {
-        // approval 3 initiated by Biruk Kebede (credit)
+    @DisplayName("Approval decisions are restricted to ADMIN/MANAGER -> 403 for CREDIT_OFFICER")
+    void approvalRequiresApproverRole() throws Exception {
         String credit = loginTokenByRole("CREDIT_OFFICER");
-        post("/api/approvals/3/approve", Map.of(), credit, 409);
-        post("/api/approvals/3/reject", Map.of(), credit, 409);
+        post("/api/approvals/3/approve", Map.of(), credit, 403);
+        post("/api/approvals/3/reject", Map.of(), credit, 403);
     }
 
     @Test
@@ -170,17 +168,17 @@ class EdgeCasesIT extends BaseApiIT {
     void doubleDecisionRejected() throws Exception {
         String manager = loginTokenByRole("MANAGER");
         post("/api/approvals/3/approve", Map.of(), manager, 200);
-        // second attempt by another non-initiator
-        String auditor = loginTokenByRole("AUDITOR");
-        post("/api/approvals/3/approve", Map.of(), auditor, 409);
+        // second attempt by another approver
+        String admin = loginTokenByRole("ADMIN");
+        post("/api/approvals/3/approve", Map.of(), admin, 409);
     }
 
     @Test
-    @DisplayName("Maker-checker: teller (Kaleab) may approve teller2's (Rahel) withdrawal")
-    void makerCheckerCrossTeller() throws Exception {
-        // approval 4 initiated by Rahel Abebe (teller2); Kaleab Desta (teller) is a different user
+    @DisplayName("TELLER cannot approve a withdrawal -> 403")
+    void tellerCannotApprove() throws Exception {
+        // approval 4 is initiated by Rahel Abebe (teller2); approval is a MANAGER/ADMIN action
         String teller = loginToken("teller");
-        post("/api/approvals/4/approve", Map.of(), teller, 200);
+        post("/api/approvals/4/approve", Map.of(), teller, 403);
     }
 
     @Test

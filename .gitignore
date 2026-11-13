@@ -46,3 +46,6 @@ playwright/.cache/
 
 # INSA submission documents (not for public repository)
 /INSA_SUBMISSION/
+
+# Security audit, evidence, and policy pack (internal; not for the public repository)
+/security/

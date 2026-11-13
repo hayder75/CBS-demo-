@@ -1,5 +1,7 @@
 package com.cbs.sacco.member.entity;
 
+import com.cbs.sacco.common.crypto.EncryptedStringConverter;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -30,6 +32,8 @@ public class Beneficiary {
 
     private String relation;
 
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(length = 255)
     private String phone;
 
     private BigDecimal percent = BigDecimal.ZERO;

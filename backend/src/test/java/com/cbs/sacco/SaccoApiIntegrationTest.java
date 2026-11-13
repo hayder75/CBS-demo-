@@ -43,7 +43,7 @@ class SaccoApiIntegrationTest {
     private String loginToken() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"MANAGER\"}"))
+                        .content("{\"username\":\"manager\",\"password\":\"demo123\"}"))
                 .andExpect(status().isOk())
                 .andReturn();
         JsonNode node = objectMapper.readTree(result.getResponse().getContentAsString());
@@ -54,7 +54,7 @@ class SaccoApiIntegrationTest {
     void loginReturnsUserAndToken() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"manager\",\"role\":\"MANAGER\"}"))
+                        .content("{\"username\":\"manager\",\"password\":\"demo123\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("manager"))
                 .andExpect(jsonPath("$.role").value("MANAGER"))
@@ -62,12 +62,11 @@ class SaccoApiIntegrationTest {
     }
 
     @Test
-    void roleLoginResolvesDemoUser() throws Exception {
+    void roleOnlyLoginIsRejected() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"role\":\"TELLER\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.role").value("TELLER"));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -100,15 +99,15 @@ class SaccoApiIntegrationTest {
         // Login as the initiator of approval id 1 (Biruk Kebede)
         MvcResult login = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"credit\"}"))
+                        .content("{\"username\":\"credit\",\"password\":\"demo123\"}"))
                 .andExpect(status().isOk())
                 .andReturn();
         String creditToken = objectMapper.readTree(login.getResponse().getContentAsString()).get("token").asText();
 
-        // Initiated by Biruk Kebede -> self-approval must be rejected
+        // CREDIT_OFFICER is not an approver role -> the decision is forbidden
         mockMvc.perform(post("/api/approvals/1/approve")
                         .header("Authorization", "Bearer " + creditToken))
-                .andExpect(status().isConflict());
+                .andExpect(status().isForbidden());
 
         // Manager can approve
         String managerToken = loginToken();

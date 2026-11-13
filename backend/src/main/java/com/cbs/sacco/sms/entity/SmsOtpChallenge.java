@@ -1,5 +1,6 @@
 package com.cbs.sacco.sms.entity;
 
+import com.cbs.sacco.common.crypto.EncryptedStringConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -13,7 +14,8 @@ public class SmsOtpChallenge {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 32)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(nullable = false, length = 255)
     private String phone;
 
     @Column(length = 40)

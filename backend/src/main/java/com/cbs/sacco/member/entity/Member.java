@@ -1,5 +1,7 @@
 package com.cbs.sacco.member.entity;
 
+import com.cbs.sacco.common.crypto.EncryptedStringConverter;
+import jakarta.persistence.Convert;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,11 +37,16 @@ public class Member {
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(length = 255)
     private String phone;
 
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(length = 255)
     private String email;
 
-    @Column(name = "fayda_id")
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(name = "fayda_id", length = 255)
     private String faydaId;
 
     private String kebele;

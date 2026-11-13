@@ -136,7 +136,11 @@ public class AuditTrailEventListener
                 || name.contains("secret")
                 || name.contains("token")
                 || name.contains("apikey")
-                || name.contains("api_key");
+                || name.contains("api_key")
+                || name.contains("phone")
+                || name.contains("fayda")
+                || name.contains("email")
+                || name.contains("referee");
     }
 
     private static String actor() {

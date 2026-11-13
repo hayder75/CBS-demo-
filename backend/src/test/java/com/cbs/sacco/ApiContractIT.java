@@ -34,7 +34,7 @@ class ApiContractIT extends BaseApiIT {
     @Order(1)
     @DisplayName("POST /api/auth/login returns User+token contract")
     void loginContract() throws Exception {
-        JsonNode n = post("/api/auth/login", Map.of("role", "MANAGER"), "", 200);
+        JsonNode n = post("/api/auth/login", Map.of("username", "manager", "password", "demo123"), "", 200);
         assertHasFields(n, "id", "username", "name", "role", "title", "branch", "lastLogin", "token");
         assertEquals("MANAGER", n.get("role").asText());
         assertTrue(n.get("token").asText().length() > 30);
@@ -44,7 +44,7 @@ class ApiContractIT extends BaseApiIT {
     @Order(2)
     @DisplayName("GET /api/auth/users returns User list")
     void usersContract() throws Exception {
-        JsonNode n = get("/api/auth/users", token());
+        JsonNode n = get("/api/auth/users", loginToken("admin"));
         assertTrue(n.isArray() && n.size() >= 6);
         assertHasFields(n.get(0), "id", "username", "name", "role", "title", "branch", "lastLogin");
     }

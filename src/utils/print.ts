@@ -1,6 +1,6 @@
 import { buildCsv, type CsvRow } from './csv';
 
-const COMPANY_NAME = 'CBS General SACCO';
+const COMPANY_NAME = 'Anchor Financials';
 const COMPANY_SUB = 'Community-Based Savings & Credit Cooperative · Addis Ababa, Ethiopia';
 
 function makeRef(prefix: string) {

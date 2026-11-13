@@ -119,7 +119,7 @@ export default function AppLayout() {
       <Layout.Header className="cbs-topnav">
         <div className="cbs-topnav-brand" onClick={() => navigate('/')}>
           <div className="cbs-topnav-logo">A</div>
-          <span className="cbs-topnav-name">Anchor CBS</span>
+          <span className="cbs-topnav-name">Anchor Financials</span>
         </div>
 
         <nav className="cbs-topnav-modules">
@@ -208,7 +208,7 @@ export default function AppLayout() {
             </Typography.Text>
             <div className="cbs-header-spacer" />
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              Anchor CBS
+              Anchor Financials
             </Typography.Text>
           </div>
 

@@ -28,13 +28,14 @@ class LoanParityIT extends BaseApiIT {
     @Test
     @DisplayName("PUT /api/loan-config/{key} updates a value")
     void loanConfigUpdate() throws Exception {
+        String manager = loginToken("manager");
         JsonNode updated = put("/api/loan-config/default_interest_rate_pct",
-                Map.of("configValue", "15.5"), token(), 200);
+                Map.of("configValue", "15.5"), manager, 200);
         assertEquals("15.5", updated.get("configValue").asText());
         // restore
-        put("/api/loan-config/default_interest_rate_pct", Map.of("configValue", "14"), token(), 200);
+        put("/api/loan-config/default_interest_rate_pct", Map.of("configValue", "14"), manager, 200);
 
-        put("/api/loan-config/NO_SUCH_KEY", Map.of("configValue", "1"), token(), 404);
+        put("/api/loan-config/NO_SUCH_KEY", Map.of("configValue", "1"), manager, 404);
     }
 
     @Test

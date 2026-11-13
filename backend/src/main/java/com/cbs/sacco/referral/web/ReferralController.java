@@ -132,7 +132,9 @@ public class ReferralController {
         if (owner != null && normalizePhone(owner.getPhone()).equals(refereePhone)) {
             throw new IllegalArgumentException("A member cannot refer themselves");
         }
-        if (recordRepository.existsByRefereePhone(refereePhone)) {
+        boolean alreadyReferred = recordRepository.findAll().stream()
+                .anyMatch(record -> normalizePhone(record.getRefereePhone()).equals(refereePhone));
+        if (alreadyReferred) {
             throw new IllegalArgumentException("This phone number has already been referred");
         }
 

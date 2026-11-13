@@ -37,6 +37,8 @@ app:
     production: ${PRODUCTION:false}
     seed-password: ${SEED_PASSWORD:demo123}
     mfa-phone: ${MFA_PHONE:}
+    field-key: ${FIELD_ENCRYPTION_KEY:}
+    encrypt-backfill: ${ENCRYPT_BACKFILL:false}
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
   afro-sms:

@@ -18,6 +18,7 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.regex.Pattern;
@@ -70,7 +71,7 @@ public class SmsService {
                 throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "SMS gateway rejected the OTP request");
             }
             Instant now = Instant.now();
-            challengeRepo.findTopByPhoneAndStatusOrderByIdDesc(phone, "Pending").ifPresent(previous -> {
+            findPending(phone).ifPresent(previous -> {
                 previous.setStatus("Superseded");
                 challengeRepo.save(previous);
             });
@@ -103,8 +104,7 @@ public class SmsService {
         if (code == null || !code.matches("\\d{4,8}")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter the code sent to your phone");
         }
-        SmsOtpChallenge challenge = challengeRepo
-                .findTopByPhoneAndStatusOrderByIdDesc(phone, "Pending")
+        SmsOtpChallenge challenge = findPending(phone)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request a new code"));
         if (challenge.getExpiresAt().isBefore(Instant.now())) {
             challenge.setStatus("Expired");
@@ -167,6 +167,12 @@ public class SmsService {
 
     public java.util.List<SmsLog> recent() {
         return logRepo.findTop50ByOrderByIdDesc();
+    }
+
+    private Optional<SmsOtpChallenge> findPending(String phone) {
+        return challengeRepo.findByStatusOrderByIdDesc("Pending").stream()
+                .filter(challenge -> normalize(challenge.getPhone()).equals(phone))
+                .findFirst();
     }
 
     private void enforceRateLimit(String phone) {

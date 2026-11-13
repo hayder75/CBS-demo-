@@ -1,5 +1,7 @@
 package com.cbs.sacco.auth.entity;
 
+import com.cbs.sacco.common.crypto.EncryptedStringConverter;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -41,7 +43,8 @@ public class AppUser {
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
-    @Column(length = 32)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(length = 255)
     private String phone;
 
     @Column(name = "mfa_enabled", nullable = false)

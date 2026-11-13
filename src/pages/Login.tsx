@@ -226,7 +226,7 @@ export default function Login() {
                 <BankOutlined />
               </div>
               <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em' }}>
-                Anchor CBS
+                Anchor Financials
               </span>
             </div>
             <Typography.Title level={3} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>
@@ -252,7 +252,7 @@ export default function Login() {
               width: 'fit-content',
             }}
           >
-            {demoMode ? 'Demo Build — v6 · PRP-ETH-SACCO-2026' : 'Production · Anchor CBS'}
+            {demoMode ? 'Demo Build — v6 · PRP-ETH-SACCO-2026' : 'Production · Anchor Financials'}
           </Tag>
         </div>
 

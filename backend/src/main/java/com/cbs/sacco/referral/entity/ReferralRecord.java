@@ -1,5 +1,7 @@
 package com.cbs.sacco.referral.entity;
 
+import com.cbs.sacco.common.crypto.EncryptedStringConverter;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,7 +30,8 @@ public class ReferralRecord {
     @Column(name = "referee_name", nullable = false)
     private String refereeName;
 
-    @Column(name = "referee_phone", nullable = false, length = 30)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(name = "referee_phone", nullable = false, length = 255)
     private String refereePhone;
 
     @Column(nullable = false, length = 20)

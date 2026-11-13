@@ -31,10 +31,12 @@ public abstract class BaseApiIT {
     @Autowired
     protected ObjectMapper objectMapper;
 
+    protected static final String TEST_PASSWORD = "demo123";
+
     protected String loginToken(String username) throws Exception {
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"" + username + "\"}"))
+                        .content("{\"username\":\"" + username + "\",\"password\":\"" + TEST_PASSWORD + "\"}"))
                 .andReturn();
         assertEquals(200, result.getResponse().getStatus(), "login as " + username);
         JsonNode node = objectMapper.readTree(result.getResponse().getContentAsString());
@@ -42,13 +44,16 @@ public abstract class BaseApiIT {
     }
 
     protected String loginTokenByRole(String role) throws Exception {
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"" + role + "\"}"))
-                .andReturn();
-        assertEquals(200, result.getResponse().getStatus(), "role login " + role);
-        JsonNode node = objectMapper.readTree(result.getResponse().getContentAsString());
-        return node.path("token").asText();
+        String username = switch (role) {
+            case "ADMIN" -> "admin";
+            case "MANAGER" -> "manager";
+            case "TELLER" -> "teller";
+            case "CREDIT_OFFICER" -> "credit";
+            case "ACCOUNTANT" -> "accountant";
+            case "AUDITOR" -> "auditor";
+            default -> throw new IllegalArgumentException("Unknown test role: " + role);
+        };
+        return loginToken(username);
     }
 
     protected JsonNode get(String path, String token) throws Exception {
